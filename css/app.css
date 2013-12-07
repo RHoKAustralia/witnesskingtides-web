@@ -26,6 +26,20 @@ footer {
 .olControlScale { top: 15px; }
 .goog-sat-text { color: #FFFFFF; }
 
+/* CSS hack to force centered images in Bootstrap Carousel */
+.carousel-item-inner {
+  text-align: center;
+  img {
+    margin: 0 auto;
+  }
+}
+.carousel-bg-dark {
+  background: #454545;
+}
+.carousel-control {
+  vertical-align: center  
+}
+
 /*
  * Off Canvas
  * --------------------------------------------------

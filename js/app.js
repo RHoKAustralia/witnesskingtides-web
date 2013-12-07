@@ -358,6 +358,7 @@ var MapView = Backbone.View.extend({
         this.photosLayer.events.on({"featureselected": _.bind(this.onPhotoFeatureSelected, this)});
 	},
 	onPhotoFeatureSelected: function(event) {
+        this.selectControl.unselect(event.feature);
         if (event.feature.cluster.length == 1) {
             this.showModal(this.photoModalTemplate({ photos: event.feature.cluster }));
         } else {
@@ -384,6 +385,7 @@ var MapView = Backbone.View.extend({
         }
     },
     onTideSelected: function(event) {
+        this.selectControl.unselect(event.feature);
         //alert("Selected tide");
         this.showModal(this.tideModalTemplate({ tide: event.feature }));
     }

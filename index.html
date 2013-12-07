@@ -95,11 +95,14 @@
               <h4 class="modal-title"><i class="fa fa-tint"></i>&nbsp;Tide Information</h4>
             </div>
             <div class="modal-body">
-              <p><strong>Name: </strong><%= tide.attributes.name %></p>
-              <p><strong>Date: </strong><%= tide.attributes.dateTime %></p>
+              <p>The tidal gauge in this area is measured at <strong><%= tide.attributes.name %></strong>.</p>
+              <hr/>
+              <p>The king tide will occur on <strong><%= tide.attributes.dateTime %></strong></p>
+              <p>You can witness the effect of a king tide in this area between <strong><%= tide.attributes.dateRange %></strong></p>.
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <a class="btn btn-primary" href="http://www.witnesskingtides.org/participate/register-to-participate.aspx" target="_blank">Register Now</a>
+              <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
             </div>
           </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
@@ -113,7 +116,7 @@
               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
               <h4 class="modal-title"><i class="fa fa-camera"></i>&nbsp;Photo Information (<%= photos.length + ((photos.length > 1) ? " photos" : " photo") %>)</h4>
             </div>
-            <div class="modal-body">
+            <div class="modal-body carousel-bg-dark">
               <div id="photo-carousel" class="carousel slide" data-ride="carousel">
               <!-- Indicators -->
               <ol class="carousel-indicators">
@@ -134,25 +137,31 @@
                   <% } else { %>
                 <div class="item">
                   <% } %>
-                  <img src="<%= photos[i].attributes.img_url %>" alt="<%= photos[i].attributes.title %>">
-                  <div class="carousel-caption">
-                    <%= photos[i].attributes.title %>
+                  <div class="carousel-item-inner">
+                    <img src="<%= photos[i].attributes.img_url %>" alt="<%= photos[i].attributes.title %>">
+                    <div class="carousel-caption">
+                      <%= photos[i].attributes.title %>
+                    </div>
                   </div>
                 </div>
                 <% } %>
               </div>
-
-              <!-- Controls -->
-              <a class="left carousel-control" href="#photo-carousel" data-slide="prev">
-                <span class="fa fa-chevron-left"></span>
-              </a>
-              <a class="right carousel-control" href="#photo-carousel" data-slide="next">
-                <span class="fa fa-chevron-right"></span>
-              </a>
             </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <div class="btn-toolbar" role="toolbar">
+                <% if (photos.length > 1) { %>
+                <div class="btn-group">
+                  <a class="btn btn-primary" href="#photo-carousel" data-slide="prev">
+                    <i class="fa fa-chevron-left"></i>
+                  </a>
+                  <a class="btn btn-primary" href="#photo-carousel" data-slide="next">
+                    <i class="fa fa-chevron-right"></i>
+                  </a>
+                </div>
+                <% } %>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+              </div>
             </div>
           </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
