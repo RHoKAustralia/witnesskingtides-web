@@ -2,6 +2,8 @@ var debugMessage = function(msg) {
 	$("#debug").html(msg);
 }
 
+var EventAggregator = _.extend({}, Backbone.Events);
+
 /* 2014 tide data from original site */
 
 var TIDE_DATA = {
@@ -134,6 +136,7 @@ var MapView = Backbone.View.extend({
     tideModalTemplate: null,
     photoModalTemplate: null,
     selectControl: null,
+    bManualLocationRecording: false,
 	initialize: function(options) {
         this.tideModalTemplate = _.template($("#tideModal").html());
         this.photoModalTemplate = _.template($("#photoModal").html());
@@ -171,14 +174,58 @@ var MapView = Backbone.View.extend({
         this.map.addControl(new OpenLayers.Control.Scale());
         this.map.addControl(new OpenLayers.Control.MousePosition({ displayProjection: "EPSG:4326" }));
 		this.map.updateSize();
+        this.createPositionLayer();
 		this.createFlickrPhotoLayer();
         this.createTideLayer();
 		this.map.events.register("moveend", this, this.onMoveEnd);
         this.map.events.register("changebaselayer", this, this.onBaseLayerChange);
         this.setActiveBaseLayer($("a.base-layer-item[data-layer-name='goog-hybrid']"));
 		//Initial view is Australia
-		this.map.zoomToExtent(new OpenLayers.Bounds(10470115.700925, -5508791.4417243, 19060414.686531, -812500.42453675), false);
+		this.initialView();
+        EventAggregator.on("showPositionOnMap", _.bind(this.onShowPositionOnMap, this));
+        EventAggregator.on("toggleManualLocationRecording", _.bind(this.onToggleManualLocationRecording, this));
 	},
+    initialView: function() {
+        this.map.zoomToExtent(new OpenLayers.Bounds(10470115.700925, -5508791.4417243, 19060414.686531, -812500.42453675), false);
+    },
+    onShowPositionOnMap: function(e) {
+        if (this.positionLayer) {
+            this.positionLayer.removeAllFeatures();
+
+            var point = new OpenLayers.Geometry.Point(e.lon, e.lat);
+            point.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:3857"));
+            var feat = new OpenLayers.Feature.Vector(point);
+
+            this.positionLayer.addFeatures([ feat ]);
+
+            var zoomLevel = 16;
+            this.map.moveTo(new OpenLayers.LonLat(point.x, point.y), zoomLevel);
+        }
+    },
+    onToggleManualLocationRecording: function() {
+        if (this.bManualLocationRecording === true) {
+            this.endManualRecordingMode();
+        } else {
+            this.beginManualRecordingMode();
+        }
+    },
+    beginManualRecordingMode: function() {
+        this.bManualLocationRecording = true;
+        alert("You are now manually recording your location. A marker has been placed on the centre of the map. Pan/Zoom to your correct location");
+        this.positionLayer.removeAllFeatures();
+        var cent = this.map.getExtent().getCenterLonLat();
+        this.positionLayer.addFeatures([
+            new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.Point(cent.lon, cent.lat))
+        ]);
+    },
+    endManualRecordingMode: function() {
+        this.bManualLocationRecording = false;
+        alert("You have stopped manual recording of your location. Your photo location field has been updated");
+        var center = this.map.getExtent().getCenterLonLat();
+        center.transform(new OpenLayers.Projection("EPSG:3857"), new OpenLayers.Projection("EPSG:4326"));
+        EventAggregator.trigger("updatePhotoLocationField", { lon: center.lon, lat: center.lat });
+    },
     setActiveBaseLayer: function(el) {
         if (this.map != null) {
             var layerName = el.attr("data-layer-name");
@@ -220,7 +267,36 @@ var MapView = Backbone.View.extend({
     },
 	onMoveEnd: function(e) {
 		//logger.logi(this.map.getExtent());
+        if (this.bManualLocationRecording === true) {
+            this.positionLayer.removeAllFeatures();
+            var cent = this.map.getExtent().getCenterLonLat();
+            this.positionLayer.addFeatures([
+                new OpenLayers.Feature.Vector(
+                    new OpenLayers.Geometry.Point(cent.lon, cent.lat))
+            ]);
+        }
 	},
+    createPositionLayer: function() {
+        var style = new OpenLayers.Style({
+            fillColor: "#ffcc66",
+            fillOpacity: 0.8,
+            strokeColor: "#cc6633",
+            externalGraphic: "images/marker.png",
+            graphicWidth: 16,
+            graphicHeight: 16
+        });
+        this.positionLayer = new OpenLayers.Layer.Vector("User Position", {
+            projection: "EPSG:3857",
+            styleMap: new OpenLayers.StyleMap({
+                "default": style,
+                "select": {
+                    fillColor: "#8aeeef",
+                    strokeColor: "#32a8a9"
+                }
+            })
+        });
+        this.map.addLayer(this.positionLayer);
+    },
 	createUserUploadedPhotoLayer: function() {
 
 	},
@@ -337,7 +413,7 @@ var MapView = Backbone.View.extend({
                     user_id: FLICKR_USER_ID,
                     method: 'flickr.photos.search',
                     extras: 'geo,url_s',
-                    per_page: 150,
+                    per_page: 250,
                     page: 1,
                     bbox: [-180, -90, 180, 90]
                 },
@@ -417,7 +493,50 @@ var UploadPhotoView = Backbone.View.extend({
 	},
 	render: function() {
 		$(this.el).html(this.template({ title: this.title, icon: this.icon }));
+        $("#dtDate").val(moment().format("YYYY-MM-DD hh:mm"))
+                    .datetimepicker();
+        $("#photoLocationButton").click(_.bind(this.onPhotoLocationClick, this));
+        $("#photoFile").change(_.bind(this.onPhotoFileChanged, this));
+        $("#manualLocationToggle").click(_.bind(this.onManualRecordToggle, this));
+        if (typeof(navigator.geolocation) != 'undefined') {
+            navigator.geolocation.getCurrentPosition(_.bind(function(pos) { //Success
+                $("#photoLocation").val(pos.coords.longitude + " " + pos.coords.latitude);
+            }, this), _.bind(function(pos) { //Failure
+                $("#photoLocation")
+                    .val("")
+                    .attr("placeholder", "Could not get your location");
+            }, this), { //Options
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: 7000
+            });
+        }
+        EventAggregator.on("updatePhotoLocationField", _.bind(this.onUpdatePhotoLocationField, this));
 	},
+    onUpdatePhotoLocationField: function(e) {
+        $("#photoLocation").val(e.lon + " " + e.lat);
+    },
+    onManualRecordToggle: function(e) {
+        EventAggregator.trigger("toggleManualLocationRecording");
+        var el = $("#manualLocationToggle");
+        var text = el.html();
+        if (text == "(Manually change)") {
+            el.html("(Update field)");
+        } else {
+            el.html("(Manually change)");
+        }
+    },
+    onPhotoFileChanged: function(e) {
+        $("#photoFileButton").addClass("btn-success");
+        $("#photoFileButtonText").html("Photo Selected");
+    },
+    onPhotoLocationClick: function(e) {
+        var value = $("#photoLocation").val();
+        if (value != "") {
+            var coords = value.split(" ");
+            EventAggregator.trigger("showPositionOnMap", { lon: parseFloat(coords[0]), lat: parseFloat(coords[1]) });
+        }
+    },
 	teardown: function() {
 
 	}

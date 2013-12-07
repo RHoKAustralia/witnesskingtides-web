@@ -20,7 +20,7 @@ footer {
 
 /* App-specific */
 #map { height: 480px; }
-#uploadForm { margin-top: 10px; }
+/* #uploadForm { margin-top: 10px; } */
 #sidebarToggler {
   position: absolute;
   z-index: 999;
