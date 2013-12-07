@@ -1,0 +1,116 @@
+  
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Witness King Tides</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/app.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/font-awesome.css">
+
+    <script id="homeSidebar" type="template">
+   	  <div class="well">
+        <p>Witness King Tides is a fun community photography project that helps us visualise the potential future impacts of sea level rise.</strong>
+          </p>
+        <a class="btn btn-primary" href="#upload">Upload a Photo</a>
+        <a class="btn btn-default" href="#tides">See Tides</a>
+      </div>
+    </script>
+    <script id="uploadSidebar" type="template">
+      <div class="well">
+        <strong><i class="fa fa-camera"></i>&nbsp;Upload Photo</strong>
+        <form id="uploadForm">
+          <div class="form-group">
+            <input type="text" class="form-control input-sm" id="txtFirstName" placeholder="First Name">
+            <input type="text" class="form-control input-sm" id="txtSurname" placeholder="Surname">
+            <input type="email" class="form-control input-sm" id="txtEmail" placeholder="Email">
+            <input type="datetime" class="form-control input-sm" id="dtDate" placeholder="Date of Photo">
+            <label for="photoFile">Photo</label>
+            <input type="file" id="photoFile" class="input-sm">
+            <div class="input-group">
+              <input type="text" class="form-control input-sm" id="photoLocation" placeholder="Photo Location" readonly="readonly" />
+              <span class="input-group-btn">
+                <button class="btn btn-search"><i class="fa fa-map-marker"></i></button>
+              </span>
+            </div>
+            <textarea id="txtDescription" class="form-control" rows="3" placeholder="Describe this photo"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-success">Submit</button>
+          <a class="btn btn-danger" href="javascript:history.back()">Cancel</a>
+        </form>
+      </div>
+    </script>
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../docs-assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <div class="navbar navbar-fixed-top navbar-inverse" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Witness King Tides</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#home"><i class="fa fa-home"></i>&nbsp;Home</a></li>
+            <li><a href="#upload"><i class="fa fa-camera"></i>&nbsp;Upload Photo</a></li>
+            <!--
+            <li><a href="#tides">Tides</a></li>
+          -->
+          </ul>
+        </div><!-- /.nav-collapse -->
+      </div><!-- /.container -->
+    </div><!-- /.navbar -->
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+          <p class="pull-right visible-xs">
+            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+          </p>
+        <div id="map" class="col-xs-12 col-sm-9">
+          
+        </div><!--/span-->
+
+        <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+          
+        </div><!--/span-->
+      </div><!--/row-->
+
+    </div><!--/.container-->
+
+    <div id="photoList"></div>
+    <div id="debug"></div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery-1.10.2.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/underscore.js"></script>
+    <script src="js/backbone.js"></script>
+    <script src="js/OpenLayers.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
