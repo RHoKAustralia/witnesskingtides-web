@@ -457,7 +457,7 @@ var AppRouter = Backbone.Router.extend({
 			this.sidebarView.teardown();
 		this.sidebarView = view;
 		this.sidebarView.render();
-        $("#sidebarTogglerButton").html(view.title);
+        $("#sidebarTogglerButton").html("<i class='"+ view.icon + "'></i>&nbsp;" + view.title);
 	},
 	home: function() {
 		logger.logi("route: home");

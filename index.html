@@ -12,6 +12,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap-theme.css" rel="stylesheet">
     <link href="css/app.css" rel="stylesheet">
     <link rel="stylesheet" href="css/font-awesome.css">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
@@ -52,8 +53,9 @@
               <input type="text" class="form-control input-sm" id="txtSurname" placeholder="Surname">
               <input type="email" class="form-control input-sm" id="txtEmail" placeholder="Email">
               <input type="datetime" class="form-control input-sm" id="dtDate" placeholder="Date of Photo">
-              <label for="photoFile">Photo</label>
-              <input type="file" id="photoFile" class="input-sm">
+              <span class="btn btn-default btn-file">
+                <i class="fa fa-camera"></i>&nbsp;Select Photo <input type="file" id="photoFile">
+              </span>
               <div class="input-group">
                 <input type="text" class="form-control input-sm" id="photoLocation" placeholder="Photo Location" readonly="readonly" />
                 <span class="input-group-btn">
