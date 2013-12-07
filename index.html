@@ -7,46 +7,165 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-
+    
     <title>Witness King Tides</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
     <link href="css/app.css" rel="stylesheet">
     <link rel="stylesheet" href="css/font-awesome.css">
-
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="images/kingtide-apple-touch-icon.png" />
     <script id="homeSidebar" type="template">
-   	  <div class="well">
-        <p>Witness King Tides is a fun community photography project that helps us visualise the potential future impacts of sea level rise.</strong>
-          </p>
-        <a class="btn btn-primary" href="#upload">Upload a Photo</a>
-        <a class="btn btn-default" href="#tides">See Tides</a>
+   	  <div class="panel panel-info">
+        <div class="panel-heading">
+          <strong><i class="fa fa-info-circle"></i>&nbsp;About</strong>
+        </div>
+        <div class="panel-body">
+          <p>Witness King Tides is a fun community photography project that helps us visualise the potential future impacts of sea level rise.</p>
+          <div id="legend">
+            <strong>Legend</strong>
+            <ul>
+              <li><img src="images/water.png" />&nbsp;&nbsp;King Tides</li>
+              <li><img src="images/camera.png" />&nbsp;&nbsp;Flickr Photos</li>
+              <li><img src="images/marker.png" />&nbsp;&nbsp;Your current location</li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <div class="list-group">
+            <a class="list-group-item" href="#upload"><i class="fa fa-camera"></i>&nbsp;Upload a Photo<span class="pull-right"><i class="fa fa-chevron-right"></i></span></a>
+            <a class="list-group-item" href="#tides"><i class="fa fa-search"></i>&nbsp;See Tides<span class="pull-right"><i class="fa fa-chevron-right"></i></span></a>
+          </div>
+        </div>
       </div>
     </script>
     <script id="uploadSidebar" type="template">
-      <div class="well">
-        <strong><i class="fa fa-camera"></i>&nbsp;Upload Photo</strong>
-        <form id="uploadForm">
-          <div class="form-group">
-            <input type="text" class="form-control input-sm" id="txtFirstName" placeholder="First Name">
-            <input type="text" class="form-control input-sm" id="txtSurname" placeholder="Surname">
-            <input type="email" class="form-control input-sm" id="txtEmail" placeholder="Email">
-            <input type="datetime" class="form-control input-sm" id="dtDate" placeholder="Date of Photo">
-            <label for="photoFile">Photo</label>
-            <input type="file" id="photoFile" class="input-sm">
-            <div class="input-group">
-              <input type="text" class="form-control input-sm" id="photoLocation" placeholder="Photo Location" readonly="readonly" />
-              <span class="input-group-btn">
-                <button class="btn btn-search"><i class="fa fa-map-marker"></i></button>
-              </span>
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <strong><i class="fa fa-camera"></i>&nbsp;Upload Photo</strong>
+        </div>
+        <div class="panel-body">
+          <form id="uploadForm">
+            <div class="form-group">
+              <input type="text" class="form-control input-sm" id="txtFirstName" placeholder="First Name">
+              <input type="text" class="form-control input-sm" id="txtSurname" placeholder="Surname">
+              <input type="email" class="form-control input-sm" id="txtEmail" placeholder="Email">
+              <input type="datetime" class="form-control input-sm" id="dtDate" placeholder="Date of Photo">
+              <label for="photoFile">Photo</label>
+              <input type="file" id="photoFile" class="input-sm">
+              <div class="input-group">
+                <input type="text" class="form-control input-sm" id="photoLocation" placeholder="Photo Location" readonly="readonly" />
+                <span class="input-group-btn">
+                  <button class="btn btn-search"><i class="fa fa-map-marker"></i></button>
+                </span>
+              </div>
+              <textarea id="txtDescription" class="form-control" rows="3" placeholder="Describe this photo"></textarea>
             </div>
-            <textarea id="txtDescription" class="form-control" rows="3" placeholder="Describe this photo"></textarea>
-          </div>
 
-          <button type="submit" class="btn btn-success">Submit</button>
-          <a class="btn btn-danger" href="javascript:history.back()">Cancel</a>
-        </form>
+            <button type="submit" class="btn btn-success"><i class="fa fa-check"></i>&nbsp;Submit</button>
+            <a class="btn btn-danger" href="javascript:history.back()"><i class="fa fa-times"></i>&nbsp;Cancel</a>
+          </form>
+        </div>
       </div>
+    </script>
+    <script id="tidesSidebar" type="template">
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <strong><i class="fa fa-camera"></i>&nbsp;<%= title %></strong>
+        </div>
+        <div class="panel-body">
+          <div class="list-group">
+          <% for (var i = 0; i < tides.length; i++) { %>
+            <a href="#" class="list-group-item active">
+              <h4 class="list-group-item-heading">Item Title</h4>
+              <p class="list-group-item-text">Item Body</p>
+            </a>
+          <% } %>
+          </div>
+        </div>
+      </div>
+    </script>
+    <script id="tideModal" type="template">
+      <div class="modal fade" role="dialog">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title"><i class="fa fa-tint"></i>&nbsp;Tide Information</h4>
+            </div>
+            <div class="modal-body">
+              <p>The tidal gauge in this area is measured at <strong><%= tide.attributes.name %></strong>.</p>
+              <hr/>
+              <p>The king tide will occur on <strong><%= tide.attributes.dateTime %></strong></p>
+              <p>You can witness the effect of a king tide in this area between <strong><%= tide.attributes.dateRange %></strong></p>.
+            </div>
+            <div class="modal-footer">
+              <a class="btn btn-primary" href="http://www.witnesskingtides.org/participate/register-to-participate.aspx" target="_blank">Register Now</a>
+              <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+    </script>
+    <script id="photoModal" type="template">
+      <div class="modal fade" role="dialog">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title"><i class="fa fa-camera"></i>&nbsp;Photo Information (<%= photos.length + ((photos.length > 1) ? " photos" : " photo") %>)</h4>
+            </div>
+            <div class="modal-body carousel-bg-dark">
+              <div id="photo-carousel" class="carousel slide" data-ride="carousel">
+              <!-- Indicators -->
+              <ol class="carousel-indicators">
+                <% for (var i = 0; i < photos.length; i++) { %>
+                  <% if (i == 0) { %>
+                  <li data-target="#photo-carousel" data-slide-to="<%= i %>" class="active"></li>
+                  <% } else { %>
+                  <li data-target="#photo-carousel" data-slide-to="<%= i %>"></li>
+                  <% } %>
+                <% } %>
+              </ol>
+
+              <!-- Wrapper for slides -->
+              <div class="carousel-inner">
+                <% for (var i = 0; i < photos.length; i++) { %>
+                  <% if (i == 0) { %>
+                <div class="item active">
+                  <% } else { %>
+                <div class="item">
+                  <% } %>
+                  <div class="carousel-item-inner">
+                    <img src="<%= photos[i].attributes.img_url %>" alt="<%= photos[i].attributes.title %>">
+                    <div class="carousel-caption">
+                      <%= photos[i].attributes.title %>
+                    </div>
+                  </div>
+                </div>
+                <% } %>
+              </div>
+            </div>
+            </div>
+            <div class="modal-footer">
+              <div class="btn-toolbar" role="toolbar">
+                <% if (photos.length > 1) { %>
+                <div class="btn-group">
+                  <a class="btn btn-primary" href="#photo-carousel" data-slide="prev">
+                    <i class="fa fa-chevron-left"></i>
+                  </a>
+                  <a class="btn btn-primary" href="#photo-carousel" data-slide="next">
+                    <i class="fa fa-chevron-right"></i>
+                  </a>
+                </div>
+                <% } %>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
     </script>
 
     <!-- Just for debugging purposes. Don't actually copy this line! -->
@@ -73,11 +192,26 @@
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#home"><i class="fa fa-home"></i>&nbsp;Home</a></li>
-            <li><a href="#upload"><i class="fa fa-camera"></i>&nbsp;Upload Photo</a></li>
+            <li class="active navbar-link home-link"><a href="#home"><i class="fa fa-home"></i>&nbsp;Home</a></li>
+            <li class="navbar-link upload-link"><a href="#upload"><i class="fa fa-camera"></i>&nbsp;Upload Photo</a></li>
+            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bars"></i>&nbsp;Map Layers<b class="caret"></b></a>
+              <ul id="map-layer-switcher" class="dropdown-menu">
+                <li><a href="#" class="base-layer-item" data-layer-name="goog-phys"><i class="fa fa-globe"></i>&nbsp;Google Physical</a></li>
+                <li><a href="#" class="base-layer-item" data-layer-name="goog-street"><i class="fa fa-globe"></i>&nbsp;Google Street</a></li>
+                <li><a href="#" class="base-layer-item" data-layer-name="goog-hybrid"><i class="fa fa-globe"></i>&nbsp;Google Hybrid</a></li>
+                <li><a href="#" class="base-layer-item" data-layer-name="goog-satellite"><i class="fa fa-globe"></i>&nbsp;Google Satellite</a></li>
+                <li><a href="#" class="base-layer-item" data-layer-name="osm"><i class="fa fa-globe"></i>&nbsp;OpenStreetMap</a></li>
+              </ul>
+            </li>
             <!--
             <li><a href="#tides">Tides</a></li>
           -->
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li class="pull-right"><a href="http://www.flickr.com/photos/witnesskingtides/" target="_blank"><i class="fa fa-flickr"></i></a></li>
+            <li class="pull-right"><a href="http://www.linkedin.com/company/green-cross-australia" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+            <li class="pull-right"><a href="https://twitter.com/GreenCrossAus" target="_blank"><i class="fa fa-twitter"></i></a></li>
+            <li class="pull-right"><a href="https://www.facebook.com/GreenCrossAus" target="_blank"><i class="fa fa-facebook"></i></a></li>
           </ul>
         </div><!-- /.nav-collapse -->
       </div><!-- /.container -->
@@ -86,26 +220,25 @@
     <div class="container">
 
       <div class="row row-offcanvas row-offcanvas-right">
-          <p class="pull-right visible-xs">
-            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle nav</button>
+          <p id="sidebarToggler" class="pull-right visible-xs">
+            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle sidebar</button>
           </p>
-        <div id="map" class="col-xs-12 col-sm-9">
+        <div id="map" class="col-xs-12 col-sm-8">
           
         </div><!--/span-->
 
-        <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+        <div class="col-xs-6 col-sm-4 sidebar-offcanvas" id="sidebar" role="navigation">
           
         </div><!--/span-->
       </div><!--/row-->
 
     </div><!--/.container-->
-
-    <div id="photoList"></div>
     <div id="debug"></div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+    <script src="http://maps.google.com/maps/api/js?v=3&sensor=false"></script>
     <script src="js/jquery-1.10.2.js"></script>
     <script src="js/bootstrap.js"></script>
     <script src="js/underscore.js"></script>

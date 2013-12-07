@@ -7,14 +7,43 @@ body {
   overflow-x: hidden; /* Prevent scroll on narrow devices */
 }
 body {
-  padding-top: 70px;
+  padding-top: 51px;
+}
+@media (min-width: 768px) {
+  body {
+    padding-top: 70px;
+  }
 }
 footer {
   padding: 30px 0;
 }
 
+/* App-specific */
 #map { height: 480px; }
 #uploadForm { margin-top: 10px; }
+#sidebarToggler {
+  position: absolute;
+  z-index: 999;
+  right: 0;
+  top: 50px;
+}
+.olControlMousePosition { top: 0px; }
+.olControlScale { top: 15px; }
+.goog-sat-text { color: #FFFFFF; }
+
+/* CSS hack to force centered images in Bootstrap Carousel */
+.carousel-item-inner {
+  text-align: center;
+  img {
+    margin: 0 auto;
+  }
+}
+.carousel-bg-dark {
+  background: #454545;
+}
+.carousel-control {
+  vertical-align: center  
+}
 
 /*
  * Off Canvas
@@ -39,7 +68,7 @@ footer {
   }
 
   .row-offcanvas-right.active {
-    right: 50%; /* 6 columns */
+    right: 70%; /* 6 columns */
   }
 
   .row-offcanvas-left.active {
@@ -49,6 +78,6 @@ footer {
   .sidebar-offcanvas {
     position: absolute;
     top: 0;
-    width: 50%; /* 6 columns */
+    width: 72%; /* 6 columns */
   }
 }
