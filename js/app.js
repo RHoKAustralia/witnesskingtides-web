@@ -394,11 +394,13 @@ var MapView = Backbone.View.extend({
 var HomeSidebarView = Backbone.View.extend({
 	template: null,
 	el: $("#sidebar"),
+    title: "About",
+    icon: "fa fa-info-circle",
 	initialize: function(options) {
 		this.template = _.template($("#homeSidebar").html());
 	},
 	render: function() {
-		$(this.el).html(this.template());
+		$(this.el).html(this.template({ title: this.title, icon: this.icon }));
 	},
 	teardown: function() {
 
@@ -408,11 +410,13 @@ var HomeSidebarView = Backbone.View.extend({
 var UploadPhotoView = Backbone.View.extend({
 	template: null,
 	el: $("#sidebar"),
+    title: "Upload Photo",
+    icon: "fa fa-camera",
 	initialize: function(options) {
 		this.template = _.template($("#uploadSidebar").html());
 	},
 	render: function() {
-		$(this.el).html(this.template());
+		$(this.el).html(this.template({ title: this.title, icon: this.icon }));
 	},
 	teardown: function() {
 
@@ -453,6 +457,7 @@ var AppRouter = Backbone.Router.extend({
 			this.sidebarView.teardown();
 		this.sidebarView = view;
 		this.sidebarView.render();
+        $("#sidebarTogglerButton").html(view.title);
 	},
 	home: function() {
 		logger.logi("route: home");

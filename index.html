@@ -19,7 +19,7 @@
     <script id="homeSidebar" type="template">
    	  <div class="panel panel-info">
         <div class="panel-heading">
-          <strong><i class="fa fa-info-circle"></i>&nbsp;About</strong>
+          <strong><i class="<%= icon %>"></i>&nbsp;<%= title %></strong>
         </div>
         <div class="panel-body">
           <p>Witness King Tides is a fun community photography project that helps us visualise the potential future impacts of sea level rise.</p>
@@ -43,7 +43,7 @@
     <script id="uploadSidebar" type="template">
       <div class="panel panel-info">
         <div class="panel-heading">
-          <strong><i class="fa fa-camera"></i>&nbsp;Upload Photo</strong>
+          <strong><i class="<%= icon %>"></i>&nbsp;<%= title %></strong>
         </div>
         <div class="panel-body">
           <form id="uploadForm">
@@ -221,7 +221,7 @@
 
       <div class="row row-offcanvas row-offcanvas-right">
           <p id="sidebarToggler" class="pull-right visible-xs">
-            <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas">Toggle sidebar</button>
+            <button type="button" id="sidebarTogglerButton" class="btn btn-primary btn-xs" data-toggle="offcanvas"></button>
           </p>
         <div id="map" class="col-xs-12 col-sm-8">
           
