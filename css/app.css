@@ -7,7 +7,12 @@ body {
   overflow-x: hidden; /* Prevent scroll on narrow devices */
 }
 body {
-  padding-top: 70px;
+  padding-top: 51px;
+}
+@media (min-width: 768px) {
+  body {
+    padding-top: 70px;
+  }
 }
 footer {
   padding: 30px 0;
@@ -63,7 +68,7 @@ footer {
   }
 
   .row-offcanvas-right.active {
-    right: 50%; /* 6 columns */
+    right: 70%; /* 6 columns */
   }
 
   .row-offcanvas-left.active {
@@ -73,6 +78,6 @@ footer {
   .sidebar-offcanvas {
     position: absolute;
     top: 0;
-    width: 50%; /* 6 columns */
+    width: 72%; /* 6 columns */
   }
 }
