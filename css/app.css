@@ -13,8 +13,18 @@ footer {
   padding: 30px 0;
 }
 
+/* App-specific */
 #map { height: 480px; }
 #uploadForm { margin-top: 10px; }
+#sidebarToggler {
+  position: absolute;
+  z-index: 999;
+  right: 0;
+  top: 50px;
+}
+.olControlMousePosition { top: 0px; }
+.olControlScale { top: 15px; }
+.goog-sat-text { color: #FFFFFF; }
 
 /*
  * Off Canvas
