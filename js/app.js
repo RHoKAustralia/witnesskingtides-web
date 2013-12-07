@@ -5,6 +5,12 @@ var debugMessage = function(msg) {
 var FLICKR_USER_ID = '69841693@N07'; //witnesskingtides
 var FLICKR_API_KEY = '3e35f603d86b21583ad77509dd9fd597';
 
+var LAYER_GOOG_PHYS = "goog-phys";
+var LAYER_GOOG_STREET = "goog-street";
+var LAYER_GOOG_HYBRID = "goog-hybrid";
+var LAYER_GOOG_SATELLITE = "goog-satellite";
+var LAYER_OSM = "osm";
+
 /**
  * A specific format for parsing Flickr API JSON responses.
  */
@@ -46,17 +52,59 @@ var MapView = Backbone.View.extend({
 
 	},
 	render: function() {
-		this.map = new OpenLayers.Map("map");
+        this.layers = {};
+        this.layers[LAYER_GOOG_PHYS] = new OpenLayers.Layer.Google(
+            "Google Physical",
+            {type: google.maps.MapTypeId.TERRAIN}
+        );
+        this.layers[LAYER_GOOG_STREET] = new OpenLayers.Layer.Google(
+            "Google Streets", // the default
+            {numZoomLevels: 20}
+        );
+        this.layers[LAYER_GOOG_HYBRID] = new OpenLayers.Layer.Google(
+            "Google Hybrid",
+            {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
+        );
+        this.layers[LAYER_GOOG_SATELLITE] = new OpenLayers.Layer.Google(
+            "Google Satellite",
+            {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22}
+        );
+        this.layers[LAYER_OSM] = new OpenLayers.Layer.OSM("OpenStreetMap");
+		this.map = new OpenLayers.Map("map", {
+            projection: "EPSG:3857",
+            layers: [
+                this.layers[LAYER_GOOG_PHYS],
+                this.layers[LAYER_GOOG_STREET],
+                this.layers[LAYER_GOOG_HYBRID],
+                this.layers[LAYER_GOOG_SATELLITE],
+                this.layers[LAYER_OSM]
+            ]
+        });
 		this.map.updateSize();
-		//debugger;
-		this.map.addLayer(new OpenLayers.Layer.OSM());
+        this.setActiveBaseLayer($("a.base-layer-item[data-layer-name='goog-hybrid']"));
 		this.createFlickrPhotoLayer();
 		this.map.events.register("moveend", this, this.onMoveEnd);
-		//this.map.zoomToMaxExtent();
+        this.map.events.register("changebaselayer", this, this.onBaseLayerChange);
+		//Initial view is Australia
 		this.map.zoomToExtent(new OpenLayers.Bounds(10470115.700925, -5508791.4417243, 19060414.686531, -812500.42453675), false);
 	},
+    setActiveBaseLayer: function(el) {
+        if (this.map != null) {
+            var layerName = el.attr("data-layer-name");
+            if (_.has(this.layers, layerName)) {
+                //Clear active state first
+                $("#map-layer-switcher").find("li.active").removeClass("active");
+
+                this.map.setBaseLayer(this.layers[layerName]);
+                el.parent().addClass("active");
+            }
+        }
+    },
+    onBaseLayerChange: function(e) {
+        
+    },
 	onMoveEnd: function(e) {
-		logger.logi(this.map.getExtent());
+		//logger.logi(this.map.getExtent());
 	},
 	createUserUploadedPhotoLayer: function() {
 
@@ -67,21 +115,26 @@ var MapView = Backbone.View.extend({
             fillColor: "#ffcc66",
             fillOpacity: 0.8,
             strokeColor: "#cc6633",
-            externalGraphic: "${thumbnail}",
-            graphicWidth: 80,
-            graphicHeight: 80,
+            //externalGraphic: "${thumbnail}",
+            //graphicWidth: 80,
+            //graphicHeight: 80,
+            externalGraphic: "images/camera.png",
+            graphicWidth: 16,
+            graphicHeight: 16,
+            labelXOffset: 16,
             strokeWidth: 2,
             strokeOpacity: 0.8,
-            label: "${label}"
+            label: "${label}",
+            labelOutlineColor: "white",
+            labelOutlineWidth: 3
         }, {
             context: {
                 radius: function(feature) {
                     return Math.min(feature.attributes.count, 7) + 3;
                 },
                 label: function(feature) {
-                	return (feature.cluster.length > 1) ? 
-                		feature.cluster.length :
-                		""
+                	return feature.cluster.length;
+                		1
                 },
                 thumbnail: function(feature) {
                 	if (feature.cluster.length <= 1) {
@@ -138,7 +191,7 @@ var MapView = Backbone.View.extend({
 			}
 			this.map.zoomToExtent(bounds);
 		} else {
-
+            alert("Selected photo");
 		}
         // clear previous photo list and create new one
         $("photoList").innerHTML = "";
@@ -230,8 +283,11 @@ var app = {
 		$('[data-toggle=offcanvas]').click(function() {
 		    $('.row-offcanvas').toggleClass('active');
 		});
-
 		var router = new AppRouter();
+        $("a.base-layer-item").click(function(e) {
+            router.setMapView();
+            router.mapView.setActiveBaseLayer($(e.target));
+        });
 		Backbone.history.start();
 	}
 };
