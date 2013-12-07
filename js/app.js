@@ -372,9 +372,9 @@ var MapView = Backbone.View.extend({
             //externalGraphic: "${thumbnail}",
             //graphicWidth: 80,
             //graphicHeight: 80,
-            externalGraphic: "images/camera.png",
-            graphicWidth: 16,
-            graphicHeight: 16,
+            //externalGraphic: "images/camera.png",
+            //graphicWidth: 16,
+            //graphicHeight: 16,
             labelXOffset: 16,
             strokeWidth: 2,
             strokeOpacity: 0.8,
@@ -511,8 +511,43 @@ var UploadPhotoView = Backbone.View.extend({
                 timeout: 7000
             });
         }
+        $("#uploadTarget").on("load", _.bind(this.onUploadCompleted, this));
+        $("#errorSummary").hide();
+        $("#formStatus").html("");
+        $("#uploadForm").on("submit", _.bind(this.onFormSubmit, this));
+        var validator = new FormValidator("uploadForm", [
+            { name: "txtEmail", display: "Email", rules: "valid_email" },
+            { name: "txtEmail", display: "Email", rules: "required" },
+            { name: "txtFirstName", display: "First Name", rules: "required" },
+            { name: "photoFile", display: "Photo", rules: "required" }
+        ], function(errors, event) {
+            $("div.control-group").removeClass("has-error")
+                                  .removeClass("has-warning");
+            if (errors.length > 0) {
+                var errorString = '<strong><i class="fa fa-exclamation-triangle"></i>The following validation errors were found</strong><br/>';
+                for (var i = 0, errorLength = errors.length; i < errorLength; i++) {
+                    $("#" + errors[i].id).parent().addClass("has-error");
+                    errorString += errors[i].message + '<br />';
+                }
+                
+                $("#errorSummary").html(errorString).show();
+                $("#btnSubmitUpload").removeClass("disabled");
+                $("#btnCancelUpload").removeClass("disabled");
+            } else {
+                $("#errorSummary").html("").hide();
+            }
+        });
+
         EventAggregator.on("updatePhotoLocationField", _.bind(this.onUpdatePhotoLocationField, this));
 	},
+    onUploadCompleted: function(e) {
+        alert("Upload complete");
+    },
+    onFormSubmit: function(e) {
+        $("#btnSubmitUpload").addClass("disabled");
+        $("#btnCancelUpload").addClass("disabled");
+        $("#formStatus").html("")
+    },
     onUpdatePhotoLocationField: function(e) {
         $("#photoLocation").val(e.lon + " " + e.lat);
     },
