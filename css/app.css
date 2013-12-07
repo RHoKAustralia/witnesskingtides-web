@@ -4,6 +4,7 @@
  */
 html,
 body {
+  background: url('../images/html-background.jpg');
   overflow-x: hidden; /* Prevent scroll on narrow devices */
 }
 body {
