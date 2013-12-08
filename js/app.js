@@ -93,7 +93,7 @@ var LAYER_GOOG_HYBRID = "goog-hybrid";
 var LAYER_GOOG_SATELLITE = "goog-satellite";
 var LAYER_OSM = "osm";
 
-var MAX_INTERACTION_SCALE = 15000;
+var MAX_INTERACTION_SCALE = 60000;
 
 /**
  * A specific format for parsing Flickr API JSON responses.
