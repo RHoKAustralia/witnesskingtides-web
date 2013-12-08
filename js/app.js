@@ -384,7 +384,7 @@ var MapView = Backbone.View.extend({
         }, {
             context: {
                 radius: function(feature) {
-                    return Math.min(feature.attributes.count, 7) + 3;
+                    return Math.min(feature.attributes.count, 7) + 10;
                 },
                 label: function(feature) {
                 	return feature.cluster.length;
