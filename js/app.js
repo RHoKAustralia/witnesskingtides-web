@@ -179,7 +179,7 @@ var MapView = Backbone.View.extend({
         this.createTideLayer();
 		this.map.events.register("moveend", this, this.onMoveEnd);
         this.map.events.register("changebaselayer", this, this.onBaseLayerChange);
-        this.setActiveBaseLayer($("a.base-layer-item[data-layer-name='goog-hybrid']"));
+        this.setActiveBaseLayer($("a.base-layer-item[data-layer-name='goog-phys']"));
 		//Initial view is Australia
 		this.initialView();
         EventAggregator.on("showPositionOnMap", _.bind(this.onShowPositionOnMap, this));
