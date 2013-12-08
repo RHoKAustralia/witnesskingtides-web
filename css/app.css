@@ -45,6 +45,12 @@ footer {
 .carousel-control {
   vertical-align: center  
 }
+.carousel-caption {
+  position: inherit;
+}
+.carousel-indicators {
+  bottom: 0px;
+}
 
 /* Give some style to the file input field */
 .btn-file {
