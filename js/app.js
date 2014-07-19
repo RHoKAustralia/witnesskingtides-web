@@ -563,21 +563,21 @@ var MapView = Backbone.View.extend({
 
         this.map.updateSize();
 
+        this.createPositionLayer();
+        this.createFlickrPhotoLayer();
+        this.map.events.register("moveend", this, this.onMoveEnd);
+        this.map.events.register("changebaselayer", this, this.onBaseLayerChange);
+        this.setActiveBaseLayer($("a.base-layer-item[data-layer-name='goog-phys']"));
+        //Initial view is Australia
+        this.initialView();
+        EventAggregator.on("addNewPhotoMarker", _.bind(this.onAddNewPhotoMarker, this));
+        EventAggregator.on("showPositionOnMap", _.bind(this.onShowPositionOnMap, this));
+        EventAggregator.on("toggleManualLocationRecording", _.bind(this.onToggleManualLocationRecording, this));
+        EventAggregator.trigger("requestLegendUpdate");
+
         $.getJSON(SERVICE_URL + "/tides", _.bind(function (tides) {
             this.tideEvents = tides;
             this.createTideLayer();
-        }, this)).then(_.bind(function() {
-            this.createPositionLayer();
-            this.createFlickrPhotoLayer();
-            this.map.events.register("moveend", this, this.onMoveEnd);
-            this.map.events.register("changebaselayer", this, this.onBaseLayerChange);
-            this.setActiveBaseLayer($("a.base-layer-item[data-layer-name='goog-phys']"));
-            //Initial view is Australia
-            this.initialView();
-            EventAggregator.on("addNewPhotoMarker", _.bind(this.onAddNewPhotoMarker, this));
-            EventAggregator.on("showPositionOnMap", _.bind(this.onShowPositionOnMap, this));
-            EventAggregator.on("toggleManualLocationRecording", _.bind(this.onToggleManualLocationRecording, this));
-            EventAggregator.trigger("requestLegendUpdate");
         }, this));
 
 		
