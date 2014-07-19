@@ -575,6 +575,7 @@ var MapView = Backbone.View.extend({
         EventAggregator.on("toggleManualLocationRecording", _.bind(this.onToggleManualLocationRecording, this));
         EventAggregator.trigger("requestLegendUpdate");
 
+        //This bit can fail if running on a domain that's not white-listed by the backend, so do it last
         $.getJSON(SERVICE_URL + "/tides", _.bind(function (tides) {
             this.tideEvents = tides;
             this.createTideLayer();
