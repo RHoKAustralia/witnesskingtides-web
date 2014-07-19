@@ -566,6 +566,7 @@ var MapView = Backbone.View.extend({
         $.getJSON(SERVICE_URL + "/tides", _.bind(function (tides) {
             this.tideEvents = tides;
             this.createTideLayer();
+        }, this)).then(_.bind(function() {
             this.createPositionLayer();
             this.createFlickrPhotoLayer();
             this.map.events.register("moveend", this, this.onMoveEnd);
