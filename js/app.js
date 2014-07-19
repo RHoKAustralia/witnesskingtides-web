@@ -168,7 +168,7 @@ var FlickrPhotoCache = OpenLayers.Class({
         EventAggregator.trigger("flickrPageLoading");
         var that = this;
         var promise = $.getJSON(
-            "http://api.flickr.com/services/rest?jsoncallback=?",
+            "https://api.flickr.com/services/rest?jsoncallback=?",
             this.getRequestParams()
         );
         promise.done(function (data) {
