@@ -1143,8 +1143,10 @@ var UploadPhotoView = Backbone.View.extend({
 	},
 	render: function() {
 		$(this.el).html(this.template({ title: this.title, icon: this.icon }));
-        $("#dtDate").val(moment().format("YYYY-MM-DD hh:mm"))
-                    .datetimepicker();
+        var dtPicker = $("#dtDate");
+        dtPicker.val(moment().format("YYYY-MM-DD hh:mm"));
+        if (!Modernizr.inputtypes.datetime)
+            dtPicker.datetimepicker();
         $("#photoLocationButton").click(_.bind(this.onPhotoLocationClick, this));
         $("#photoFile").change(_.bind(this.onPhotoFileChanged, this));
         $("#manualLocationToggle").click(_.bind(this.onManualRecordToggle, this));
