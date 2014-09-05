@@ -62,6 +62,9 @@
 
             #sidebarBody { overflow-y: auto; }
 
+            .zoom-top-opened-sidebar { margin-top: 5px; }
+            .zoom-top-collapsed { margin-top: 45px; }
+
             /**
              * WKT logo
              */
@@ -258,8 +261,11 @@
                 }
             }
 
-            .flickr-thumbnail { display: inline; margin-left: 4px; margin-right: 4px; }
+            /**
+             * Photo sidebar
+             */
 
+            .flickr-thumbnail { display: inline; margin-left: 4px; margin-right: 4px; }
             .album-pager { display: block; }
             .flickr-thumbnail-grid { display: block; margin-top: 50px; }
 
@@ -626,7 +632,7 @@
                             <li class="active navbar-link home-link"><a href="#home" title="Home"><i class="fa fa-home"></i>&nbsp;<span><span class="navbar-btn-label">Home</span></span></a></li>
                             <li class="navbar-link upload-link"><a href="#upload" title="Upload Photo"><i class="fa fa-camera"></i>&nbsp;<span><span class="navbar-btn-label">Upload Photo</span></span></a></li>
                             <li class="navbar-link photos-link"><a href="#photos" title="View Photos"><i class="fa fa-picture-o"></i>&nbsp;<span><span class="navbar-btn-label">View Photos</span></span></a></li>
-                            <li class="visible-xs"><a href="javascript:void(0)" data-toggle="offcanvas"><i class="fa fa-globe"></i>&nbsp;Map</a></li>
+                            <li class="visible-xs"><a class="map-command" href="javascript:void(0)"><i class="fa fa-globe"></i>&nbsp;Map</a></li>
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bars"></i>&nbsp;Map Layers<b class="caret"></b></a>
                                 <ul id="map-layer-switcher" class="dropdown-menu">
@@ -651,9 +657,8 @@
         <div class="navbar-offset"></div>
         <div id="map"></div>
         <div class="row main-row">
-            <div class="col-sm-8 col-md-8 mid"></div>
-            <div class="col-sm-4 col-md-4 sidebar sidebar-right pull-right">
-                <div class="panel-group sidebar-body" id="accordion-right">
+            <div class="col-sm-4 col-md-4 sidebar sidebar-left pull-left">
+                <div class="panel-group sidebar-body" id="accordion-left">
                     <div class="panel panel-info">
                         <div class="panel-heading">
                             <h4 class="panel-title">
@@ -661,7 +666,7 @@
                                     <i id="sidebarIcon" class="fa fa-tasks"></i>
                                     <span id="sidebarTitle">Task Pane</span>
                                     <button class="btn btn-info btn-xs pull-right slide-submenu">
-                                    <i class="fa fa-chevron-right"></i>
+                                    <i class="fa fa-chevron-left"></i>
                                 </button>
                                 </span>
                             </h4>
@@ -672,8 +677,9 @@
                     </div>
                 </div>
             </div>
+            <div class="col-sm-8 col-md-8 mid"></div>
         </div>
-        <div class="mini-submenu mini-submenu-right pull-right">
+        <div class="mini-submenu mini-submenu-left pull-left">
             <i id="sidebarTogglerIcon"></i>
         </div>
         <!-- Placed at the end of the document so the pages load faster -->

@@ -1464,18 +1464,7 @@ var AppRouter = Backbone.Router.extend({
 			this.sidebarView.teardown();
 		this.sidebarView = view;
 		this.sidebarView.render();
-		$("#sidebarTogglerButton").html("<i class='" + view.icon + "'></i>&nbsp;" + view.title + "&nbsp;<i class='fa fa-angle-double-right'></i>");
-
-	    //If we can see our responsive marker it means we're in phone view,
-	    //so we should default the view to the sidebar
-		if ($("#responsiveMarker").is(":visible"))
-		    $('.row-offcanvas').addClass('offcanvas-shift');
-
-	    //Be sure to toggle the map view.
-		$('[data-toggle=offcanvas]').off("click");
-		$('[data-toggle=offcanvas]').on("click", function () {
-		    $('.row-offcanvas').toggleClass('offcanvas-shift');
-		});
+        openSidebar();
 	},
 	home: function() {
 		logger.logi("route: home");
@@ -1509,11 +1498,11 @@ var AppRouter = Backbone.Router.extend({
 
 var app = {
     initialize: function () {
-        $('.sidebar-right .slide-submenu').on('click',function() {
+        $('.sidebar-left .slide-submenu').on('click',function() {
             closeSidebar();
         });
 
-        $('.mini-submenu-right').on('click',function() {
+        $('.mini-submenu-left').on('click',function() {
             openSidebar();
         });
 
@@ -1525,13 +1514,17 @@ var app = {
         $(document).on("click", "ul.navbar-nav a", function (e) {
             var el = $(e.target);
             if (el.closest("li.active").length == 1 && !el.hasClass("base-layer-item")) {
-                openSidebar();
                 RollupNavbar();
+                openSidebar();
             } else if (el.hasClass("base-layer-item")) {
                 RollupNavbar();
-            } else if (!el.hasClass("dropdown-toggle")) {
                 openSidebar();
+            } else if (el.hasClass("map-command")) {
                 RollupNavbar();
+                closeSidebar();
+            } else if (!el.hasClass("dropdown-toggle")) {
+                RollupNavbar();
+                openSidebar();
             }
         });
         $(document).on("click", "a.refresh-album", function (e) {
@@ -1542,19 +1535,20 @@ var app = {
 };
 
 function openSidebar() {
-    var thisEl = $('.mini-submenu-right');
+    var thisEl = $('.mini-submenu-left');
     if (thisEl.is(":visible")) {
-        $('.sidebar-right .sidebar-body').toggle('slide');
-        thisEl.hide();
-        applyMargins();
+        $('.sidebar-left .sidebar-body').toggle('slide', function() {
+            thisEl.hide();
+            applyMargins();
+        });
     }
 }
 
 function closeSidebar() {
-    var thisEl = $('.sidebar-right .slide-submenu');
+    var thisEl = $('.sidebar-left .slide-submenu');
     if (thisEl.is(":visible")) {
-        thisEl.closest('.sidebar-body').fadeOut('slide',function(){
-            $('.mini-submenu-right').fadeIn();
+        thisEl.closest('.sidebar-body').fadeOut('slide', function() {
+            $('.mini-submenu-left').fadeIn();
             applyMargins();
         });
     }
@@ -1566,26 +1560,25 @@ function getDesiredHeight(el) {
 }
 
 function applyMargins() {
-    var rightToggler = $(".mini-submenu-right");
-    var zoomCtrl = $("#map .ol-zoom");
-    var rotateCtrl = $("#map .ol-rotate");
-    var attrCtrl = $("#map .ol-attribution");
-    if (rightToggler.is(":visible")) { //Right sidebar collapsed
-      rotateCtrl
-        .css("margin-right", 0)
-        .removeClass("zoom-top-opened-sidebar")
-        .addClass("zoom-top-collapsed");
-      attrCtrl
-        .css("margin-right", 0);
+    var leftToggler = $(".mini-submenu-left");
+    var zoomCtrl = $("#map .olControlZoom");
+    var toolbarCtrl = $("#map .olControlTextButtonPanel");
+    if (leftToggler.is(":visible")) { //Right sidebar collapsed
+        zoomCtrl
+            .css("margin-left", 0)
+            .removeClass("zoom-top-opened-sidebar")
+            .addClass("zoom-top-collapsed");
+        toolbarCtrl
+            .css("margin-left", 0);
     } else {
-      rotateCtrl
-        .css("margin-right", $(".sidebar-right").width())
-        .removeClass("zoom-top-opened-sidebar")
-        .removeClass("zoom-top-collapsed");
-      attrCtrl
-        .css("margin-right", $(".sidebar-right").width())
-      var el = $("#sidebarBody");
-      el.height(getDesiredHeight(el));
+        var el = $("#sidebarBody");
+        zoomCtrl
+            .css("margin-left", el.width() + 30)
+            .addClass("zoom-top-opened-sidebar")
+            .removeClass("zoom-top-collapsed");
+        toolbarCtrl
+            .css("margin-left", el.width() + 30);
+        el.height(getDesiredHeight(el));
     }
 }
 
