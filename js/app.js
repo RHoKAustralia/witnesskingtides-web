@@ -514,6 +514,7 @@ var MapView = Backbone.View.extend({
         });
 
         panel.addControls([
+            /*
             new OpenLayers.Control.Button({
                 trigger: function () {
                     window.location.hash = "#home";
@@ -532,6 +533,7 @@ var MapView = Backbone.View.extend({
                 },
                 displayClass: 'wkt-btn-photos'
             }),
+            */
             new OpenLayers.Control.Button({
                 trigger: function() {
                     that.zoomToMylocation();
