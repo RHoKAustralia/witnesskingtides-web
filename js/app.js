@@ -20,16 +20,10 @@ var BLUEIMP_GALLERY_OPTIONS = {
     useBootstrapModal: false
 };
 
-function IsMapOffCanvas() {
-    return $("div.row-offcanvas-right").hasClass("offcanvas-shift");
-}
-
-function InvokeSidebarToggler() {
-    $("#sidebarTogglerButton")[0].click();
-}
-
 function RollupNavbar() {
-    $("button.navbar-toggle")[0].click();
+    var el = $("button.navbar-toggle");
+    if (el.is(":visible"))
+        el[0].click();
 }
 
 /* 2014 tide data from original site */
@@ -1516,18 +1510,11 @@ var AppRouter = Backbone.Router.extend({
 var app = {
     initialize: function () {
         $('.sidebar-right .slide-submenu').on('click',function() {
-          var thisEl = $(this);
-          thisEl.closest('.sidebar-body').fadeOut('slide',function(){
-            $('.mini-submenu-right').fadeIn();
-            applyMargins();
-          });
+            closeSidebar();
         });
 
         $('.mini-submenu-right').on('click',function() {
-          var thisEl = $(this);
-          $('.sidebar-right .sidebar-body').toggle('slide');
-          thisEl.hide();
-          applyMargins();
+            openSidebar();
         });
 
 		this.router = new AppRouter();
@@ -1537,13 +1524,13 @@ var app = {
         }, this));
         $(document).on("click", "ul.navbar-nav a", function (e) {
             var el = $(e.target);
-            if (el.closest("li.active").length == 1 && !el.hasClass("base-layer-item") && !IsMapOffCanvas()) {
-                InvokeSidebarToggler();
+            if (el.closest("li.active").length == 1 && !el.hasClass("base-layer-item")) {
+                openSidebar();
                 RollupNavbar();
-            } else if (el.hasClass("base-layer-item") && IsMapOffCanvas()) {
-                InvokeSidebarToggler();
+            } else if (el.hasClass("base-layer-item")) {
                 RollupNavbar();
             } else if (!el.hasClass("dropdown-toggle")) {
+                openSidebar();
                 RollupNavbar();
             }
         });
@@ -1553,6 +1540,25 @@ var app = {
 		Backbone.history.start();
 	}
 };
+
+function openSidebar() {
+    var thisEl = $('.mini-submenu-right');
+    if (thisEl.is(":visible")) {
+        $('.sidebar-right .sidebar-body').toggle('slide');
+        thisEl.hide();
+        applyMargins();
+    }
+}
+
+function closeSidebar() {
+    var thisEl = $('.sidebar-right .slide-submenu');
+    if (thisEl.is(":visible")) {
+        thisEl.closest('.sidebar-body').fadeOut('slide',function(){
+            $('.mini-submenu-right').fadeIn();
+            applyMargins();
+        });
+    }
+}
 
 function getDesiredHeight(el) {
     var outerHeight = $(window).height() - el.offset().top;
