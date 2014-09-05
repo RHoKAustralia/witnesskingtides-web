@@ -1515,16 +1515,13 @@ var app = {
             var el = $(e.target);
             if (el.closest("li.active").length == 1 && !el.hasClass("base-layer-item")) {
                 RollupNavbar();
-                openSidebar();
             } else if (el.hasClass("base-layer-item")) {
                 RollupNavbar();
-                openSidebar();
             } else if (el.hasClass("map-command")) {
                 RollupNavbar();
                 closeSidebar();
             } else if (!el.hasClass("dropdown-toggle")) {
                 RollupNavbar();
-                openSidebar();
             }
         });
         $(document).on("click", "a.refresh-album", function (e) {
