@@ -256,3 +256,23 @@ div.olControlTextButtonPanel .olButton:hover {
 .flickr-thumbnail { display: inline; margin-left: 4px; margin-right: 4px; }
 .album-pager { display: block; }
 .flickr-thumbnail-grid { display: block; margin-top: 50px; }
+
+/* Give some style to the file input field */
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 999px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    background: red;
+    cursor: inherit;
+    display: block;
+}
