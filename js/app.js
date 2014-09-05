@@ -984,9 +984,24 @@ var MapView = Backbone.View.extend({
     }
 });
 
-var HomeSidebarView = Backbone.View.extend({
-	template: null,
-	el: $("#sidebar"),
+var BaseSidebarView = Backbone.View.extend({
+    template: null,
+    el: $("#sidebarBody"),
+    renderBase: function() {
+        $(this.el).html(this.template({ title: this.title, icon: this.icon }));
+        this.updateTitle(this.title);
+        this.updateIcon(this.icon);
+    },
+    updateTitle: function(title) {
+        $("#sidebarTitle").text(title);
+    },
+    updateIcon: function(classes) {
+        $("#sidebarIcon").attr("class", classes);
+        $("#sidebarTogglerIcon").attr("class", classes);
+    }
+});
+
+var HomeSidebarView = BaseSidebarView.extend({
     title: "Home",
     icon: "fa fa-home",
 	initialize: function(options) {
@@ -995,7 +1010,7 @@ var HomeSidebarView = Backbone.View.extend({
 	    EventAggregator.on("updateLegend", this.updateLegendHandler);
 	},
 	render: function() {
-	    $(this.el).html(this.template({ title: this.title, icon: this.icon }));
+	    BaseSidebarView.prototype.renderBase.apply(this, arguments);
 	    EventAggregator.trigger("requestLegendUpdate");
 	},
 	onUpdateLegend: function(e) {
@@ -1019,10 +1034,8 @@ var HomeSidebarView = Backbone.View.extend({
 	}
 });
 
-var PhotosView = Backbone.View.extend({
-    template: null,
+var PhotosView = BaseSidebarView.extend({
     pagerTemplate: null,
-    el: $("#sidebar"),
     title: "Photos",
     icon: "fa fa-picture-o",
     initialize: function(options) {
@@ -1030,11 +1043,10 @@ var PhotosView = Backbone.View.extend({
         this.pagerTemplate = _.template($("#albumPager").html());
     },
     render: function () {
-        $(this.el).html(this.template({ title: this.title, icon: this.icon }));
+        BaseSidebarView.prototype.renderBase.apply(this, arguments);
         EventAggregator.on("flickrCacheReset", _.bind(this.onFlickrCacheReset, this));
         EventAggregator.on("flickrPageLoading", _.bind(this.onFlickrPageLoading, this));
         EventAggregator.on("flickrPageLoaded", _.bind(this.onFlickrPageLoaded, this));
-
         EventAggregator.trigger("loadCurrentFlickrPage");
     },
     teardown: function () {
@@ -1133,16 +1145,14 @@ var PhotosView = Backbone.View.extend({
     }
 });
 
-var UploadPhotoView = Backbone.View.extend({
-	template: null,
-	el: $("#sidebar"),
+var UploadPhotoView = BaseSidebarView.extend({
     title: "Upload Photo",
     icon: "fa fa-camera",
 	initialize: function(options) {
 		this.template = _.template($("#uploadSidebar").html());
 	},
 	render: function() {
-		$(this.el).html(this.template({ title: this.title, icon: this.icon }));
+		BaseSidebarView.prototype.renderBase.apply(this, arguments);
         var dtPicker = $("#dtDate");
         dtPicker.val(moment().format("YYYY-MM-DD hh:mm"));
         if (!Modernizr.inputtypes.datetime)
@@ -1505,9 +1515,21 @@ var AppRouter = Backbone.Router.extend({
 
 var app = {
     initialize: function () {
-		$('[data-toggle=offcanvas]').click(function() {
-		    $('.row-offcanvas').toggleClass('active');
-		});
+        $('.sidebar-right .slide-submenu').on('click',function() {
+          var thisEl = $(this);
+          thisEl.closest('.sidebar-body').fadeOut('slide',function(){
+            $('.mini-submenu-right').fadeIn();
+            applyMargins();
+          });
+        });
+
+        $('.mini-submenu-right').on('click',function() {
+          var thisEl = $(this);
+          $('.sidebar-right .sidebar-body').toggle('slide');
+          thisEl.hide();
+          applyMargins();
+        });
+
 		this.router = new AppRouter();
         $("a.base-layer-item").click(_.bind(function(e) {
             this.router.setMapView();
@@ -1532,6 +1554,37 @@ var app = {
 	}
 };
 
+function getDesiredHeight(el) {
+    var outerHeight = $(window).height() - el.offset().top;
+    return outerHeight - (el.outerHeight(true) - el.innerHeight());
+}
+
+function applyMargins() {
+    var rightToggler = $(".mini-submenu-right");
+    var zoomCtrl = $("#map .ol-zoom");
+    var rotateCtrl = $("#map .ol-rotate");
+    var attrCtrl = $("#map .ol-attribution");
+    if (rightToggler.is(":visible")) { //Right sidebar collapsed
+      rotateCtrl
+        .css("margin-right", 0)
+        .removeClass("zoom-top-opened-sidebar")
+        .addClass("zoom-top-collapsed");
+      attrCtrl
+        .css("margin-right", 0);
+    } else {
+      rotateCtrl
+        .css("margin-right", $(".sidebar-right").width())
+        .removeClass("zoom-top-opened-sidebar")
+        .removeClass("zoom-top-collapsed");
+      attrCtrl
+        .css("margin-right", $(".sidebar-right").width())
+      var el = $("#sidebarBody");
+      el.height(getDesiredHeight(el));
+    }
+}
+
 $(document).ready(function() {
 	app.initialize();
+    applyMargins();
+    $(window).on("resize", applyMargins);
 });
