@@ -1,4 +1,56 @@
 /**
+ * Map viewer layout css
+ */
+
+body { overflow: hidden; }
+
+.navbar-offset { margin-top: 50px; }
+#map { position: absolute; top: 50px; bottom: 0px; left: 0px; right: 0px; }
+#map .ol-zoom { font-size: 1.2em; }
+
+.zoom-top-opened-sidebar { margin-top: 5px; }
+.zoom-top-collapsed { margin-top: 45px; }
+
+.mini-submenu{
+    display:none;  
+    background-color: rgba(255, 255, 255, 0.46);
+    border: 1px solid rgba(0, 0, 0, 0.9);
+    border-radius: 4px;
+    padding: 9px;  
+    /*position: relative;*/
+    width: 42px;
+    text-align: center;
+}
+
+.mini-submenu-left {
+    position: absolute;
+    top: 60px;
+    left: .5em;
+    z-index: 40;
+}
+.mini-submenu-right {
+    position: absolute;
+    top: 60px;
+    right: .5em;
+    z-index: 40;
+}
+
+#map { z-index: 35; }
+
+.sidebar { z-index: 45; }
+
+.main-row { position: relative; top: 0; }
+
+.mini-submenu:hover{
+    cursor: pointer;
+}
+
+#sidebarBody { overflow-y: auto; }
+
+.zoom-top-opened-sidebar { margin-top: 5px; }
+.zoom-top-collapsed { margin-top: 45px; }
+
+/**
  * WKT logo
  */
 
@@ -41,6 +93,8 @@ div.tagline {
     background-color: #12A2AB;
 }
 
+a.navbar-brand { padding-left: 65px; }
+
 @media (max-width: 992px) and (min-width: 767px) {
 
     div.wkt-logo {
@@ -62,10 +116,6 @@ div.tagline {
     }
 }
 
-@media (max-width: 850px) and (min-width: 767px) {
-    a.navbar-brand { padding-left: 55px; }
-}
-
 @media (max-width: 767px) {
     a.navbar-brand { padding-left: 65px; }
 
@@ -80,23 +130,7 @@ div.tagline {
         left: 16px;
         margin: auto;
         padding-top: 5px;
-        padding-left: 82px; 
-    }
-}
-
-@media (max-width: 480px) {
-    div.wkt-logo img {
-        top: 64px;
-        width: 72px;
-        height: 72px;
-    }
-    div.tagline {
-        top: 70px;
-        right: 16px;
-        left: 16px;
-        margin: auto;
-        padding-top: 5px;
-        padding-left: 82px; 
+        padding-left: 92px; 
     }
 }
 
@@ -114,6 +148,9 @@ div.tagline {
     height: 35px !important;
     line-height: 35px !important; /* Ensures vertical alignment of text */
 }
+.olControlMousePosition { top: 0px; }
+.olControlScale { top: 15px; }
+.goog-sat-text { color: #FFFFFF; }
 
 /**
  * OpenLayers TextButtonPanel
@@ -168,8 +205,7 @@ div.olControlTextButtonPanel .olButton:hover {
 }
 
 /**
- * Style tweaks
- * --------------------------------------------------
+ * Bootstrap navbar style tweaks to match GCA color scheme
  */
 
 .navbar-inverse .navbar-collapse,
@@ -213,201 +249,10 @@ div.olControlTextButtonPanel .olButton:hover {
     }
 }
 
-html,
-body {
-    background: url('../images/html-background.jpg');
-    overflow-x: hidden; /* Prevent scroll on narrow devices */
-    overflow-y: hidden; /* Prevent scroll on narrow devices */
-}
-body {
-    
-}
-@media (min-width: 768px) {
-    body {
-        padding-top: 70px;
-    }
-}
-footer {
-    padding: 30px 0;
-}
-
-/* App-specific */
-
-.offcanvas-shift {
-    left: -390px !important;
-}
-
-#progress {
-    width: 100%;
-}
-
-#mainContainer {
-    position: absolute;
-    bottom: 50px;
-    top: 70px;
-    left: 15px;
-    right: 15px;
-}
-
-#mainContainer .row {
-    height: 100%;
-    position: relative;
-    left: 15px;
-    right: 15px;
-}
-
-#responsiveMarker {
-    display: block;
-}
-
-@media(min-width: 1200px) {
-    #mainContainer .row {
-
-    }
-}
-@media(min-width: 992px) {
-    #mainContainer .row {
-      
-    }
-}
-@media(min-width: 768px) {
-    #mainContainer .row {
-      
-    }
-    #responsiveMarker {
-        display: none;
-    }
-}
-@media(max-width: 767px) {
-    #mainContainer {
-        position: fixed;
-        left: 0px;
-        right: 0px;
-        bottom: 0px;
-        top: 50px;
-    }
-    #mainContainer .row {
-        left: 0px;
-        right: 0px;
-    }
-    #sidebar {
-        width: 390px;
-    }
-}
-@media(max-width: 350px) {
-    #sidebar {
-        width: 100%;
-    }
-}
-
-#map { height: 100%; }
-#sidebar {
-    height: 100%;
-}
-#legend { padding-left: 10px; }
-#photosPanel, #homePanel, #uploadFormPanel { 
-    height: 100%; 
-}
-#photosPanel .panel-body, #homePanel .panel-body, #uploadFormPanel .panel-body {
-    overflow-y: auto;
-    height: 85%;
-}
-/* #uploadForm { margin-top: 10px; } */
-#sidebarToggler {
-    position: absolute;
-    z-index: 999;
-    right: 0;
-    top: 50px;
-}
-.olControlMousePosition { top: 0px; }
-.olControlScale { top: 15px; }
-.goog-sat-text { color: #FFFFFF; }
-.flickr-thumbnail-grid { margin-top: 50px; }
-.flickr-thumbnail { display: inline; margin-left: 4px; margin-right: 4px; }
-
-/* CSS hack to force centered images in Bootstrap Carousel */
-.carousel-item-inner {
-    text-align: center;
-    img {
-        margin: 0 auto;
-    }
-}
-.carousel-bg-dark {
-    background: #454545;
-}
-.carousel-control {
-    vertical-align: center
-}
-.carousel-caption {
-    position: inherit;
-}
-.carousel-indicators {
-    bottom: 0px;
-}
-
-/* Give some style to the file input field */
-.btn-file {
-    position: relative;
-    overflow: hidden;
-}
-.btn-file input[type=file] {
-    position: absolute;
-    top: 0;
-    right: 0;
-    min-width: 100%;
-    min-height: 100%;
-    font-size: 999px;
-    text-align: right;
-    filter: alpha(opacity=0);
-    opacity: 0;
-    background: red;
-    cursor: inherit;
-    display: block;
-}
-
-/*
- * Off Canvas
- * --------------------------------------------------
+/**
+ * Photo sidebar
  */
-@media screen and (max-width: 767px) {
-    .row-offcanvas {
-        position: relative;
-        -webkit-transition: all 0.25s ease-out;
-        -moz-transition: all 0.25s ease-out;
-        transition: all 0.25s ease-out;
-    }
 
-    .row-offcanvas-right
-    .sidebar-offcanvas {
-        right: -390px;
-        padding-left: 0px !important;
-        padding-right: 0px !important;
-    }
-
-    .row-offcanvas-left
-    .sidebar-offcanvas {
-        left: -50%; /* 6 columns */
-    }
-
-    .row-offcanvas-right.active {
-        right: 70%; /* 6 columns */
-    }
-
-    .row-offcanvas-left.active {
-        left: 50%; /* 6 columns */
-    }
-
-    .sidebar-offcanvas {
-        position: absolute;
-        top: 0;
-        width: 72%; /* 6 columns */
-    }
-}
-@media screen and (max-width: 480px) {
-    .row-offcanvas-right
-    .sidebar-offcanvas {
-        right: -390px;
-        padding-right: 0px;
-        padding-left: 0px;
-    }
-}
+.flickr-thumbnail { display: inline; margin-left: 4px; margin-right: 4px; }
+.album-pager { display: block; }
+.flickr-thumbnail-grid { display: block; margin-top: 50px; }
