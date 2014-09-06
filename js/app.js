@@ -235,7 +235,7 @@ var FlickrPhotoCache = OpenLayers.Class({
             format: 'json',
             //user_id: FLICKR_USER_ID,
             //method: 'flickr.photos.search',
-            extras: 'geo,url_s,url_c,url_o,date_taken,date_upload,owner_name,original_format,o_dims,views',
+            //extras: 'geo,url_s,url_c,url_o,date_taken,date_upload,owner_name,original_format,o_dims,views',
             per_page: this.photosPerPage,
             page: (this.page + 1)/*,
             bbox: this.getMapBounds()
