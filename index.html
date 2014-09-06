@@ -71,8 +71,12 @@
         <script id="albumPager" type="template">
             <div class="btn-toolbar pull-left" role="toolbar">
                 <div class="btn-group">
+                    <% if (pageNo > 1) { %>
                     <a class="btn btn-primary btn prev-album-page" title="Previous Page"><i class="fa fa-arrow-left"></i></a>
+                    <% } %>
+                    <% if (pageNo < pages) { %>
                     <a class="btn btn-primary btn next-album-page" title="Next Page"><i class="fa fa-arrow-right"></i></a>
+                    <% } %>
                     <a class="btn btn-primary btn refresh-album" title="Refresh Album"><i class="fa fa-refresh"></i></a>
                     <a class="btn btn-primary btn hidden-xs zoom-photo-page-bounds" title="Zoom to region"><i class="fa fa-arrows-alt"></i></a>
                     <a class="btn btn-primary btn filter-photostream" title="Filter this photostream"><i class="fa fa-filter"></i>&nbsp;Filter</a>
