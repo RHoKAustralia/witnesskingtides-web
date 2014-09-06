@@ -162,7 +162,7 @@ var FlickrPhotoCache = OpenLayers.Class({
         EventAggregator.trigger("flickrPageLoading");
         var that = this;
         var promise = $.getJSON(
-            "https://api.flickr.com/services/rest?jsoncallback=?",
+            SERVICE_URL + "/search",
             this.getRequestParams()
         );
         promise.done(function (data) {
@@ -231,10 +231,10 @@ var FlickrPhotoCache = OpenLayers.Class({
     },
     getRequestParams: function() {
         var params = {
-            api_key: FLICKR_API_KEY,
+            //api_key: FLICKR_API_KEY,
             format: 'json',
-            user_id: FLICKR_USER_ID,
-            method: 'flickr.photos.search',
+            //user_id: FLICKR_USER_ID,
+            //method: 'flickr.photos.search',
             extras: 'geo,url_s,url_c,url_o,date_taken,date_upload,owner_name,original_format,o_dims,views',
             per_page: this.photosPerPage,
             page: (this.page + 1)/*,
