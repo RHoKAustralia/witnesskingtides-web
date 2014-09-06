@@ -174,8 +174,8 @@ var FlickrPhotoCache = OpenLayers.Class({
             that.pages = data.photos.pages;
             that.total = parseInt(data.photos.total, 10);
             EventAggregator.trigger("flickrPageLoaded", { cache: that, firstLoad: true });
-        }).fail(function () {
-            debugger;
+        }).fail(function() {
+            //debugger;
         });
     },
     loadCurrentPage: function() {
@@ -232,7 +232,7 @@ var FlickrPhotoCache = OpenLayers.Class({
     getRequestParams: function() {
         var params = {
             //api_key: FLICKR_API_KEY,
-            format: 'json',
+            //format: 'json',
             //user_id: FLICKR_USER_ID,
             //method: 'flickr.photos.search',
             //extras: 'geo,url_s,url_c,url_o,date_taken,date_upload,owner_name,original_format,o_dims,views',
