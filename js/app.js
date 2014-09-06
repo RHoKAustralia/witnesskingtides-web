@@ -1508,11 +1508,13 @@ var AppRouter = Backbone.Router.extend({
 
 var app = {
     initialize: function () {
-        $('.sidebar-left .slide-submenu').on('click',function() {
+        $("body").on("click", ".slide-submenu", function() {
             closeSidebar();
         });
-
-        $('.mini-submenu-left').on('click',function() {
+        $("body").on("click", ".close-sidebar", function() {
+            closeSidebar();
+        });
+        $("body").on('click', '.mini-submenu-left', function() {
             openSidebar();
         });
 
