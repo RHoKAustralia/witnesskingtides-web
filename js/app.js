@@ -162,7 +162,7 @@ var FlickrPhotoCache = OpenLayers.Class({
         EventAggregator.trigger("flickrPageLoading");
         var that = this;
         var promise = $.getJSON(
-            SERVICE_URL + "/search",
+            SERVICE_URL + "/photos/search",
             this.getRequestParams()
         );
         promise.done(function (data) {
