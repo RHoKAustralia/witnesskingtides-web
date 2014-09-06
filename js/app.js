@@ -1407,6 +1407,14 @@ var UploadPhotoView = BaseSidebarView.extend({
     },
     onManualRecordToggle: function(e) {
         EventAggregator.trigger("toggleManualLocationRecording");
+        closeSidebar();
+        this.floatingMsg = $("<div class='floating-map-message alert alert-info'><p><i class='fa fa-info-circle'></i>&nbsp;Drag and zoom to your location. Click/tap here to finish</p></div>");
+        $("body").append(this.floatingMsg);
+        this.floatingMsg.click(_.bind(function() {
+            this.onManualRecordToggle();
+            $("div.floating-map-message").remove();
+            openSidebar();
+        } , this));
         var el = $("#manualLocationToggle");
         var text = el.html();
         if (text == "(Manually change)") {

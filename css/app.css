@@ -276,3 +276,12 @@ div.olControlTextButtonPanel .olButton:hover {
     cursor: inherit;
     display: block;
 }
+
+.floating-map-message {
+    position: absolute;
+    left: 60px;
+    right: 60px;
+    top: 60px;
+    z-index: 40;
+    cursor: pointer;
+}
