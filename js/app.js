@@ -1355,7 +1355,7 @@ var UploadPhotoView = BaseSidebarView.extend({
                 var progressModal = _.template($("#progressModal").html());
                 this.showModal(progressModal({}));
                 if (Modernizr.xhr2) {
-                    promise = this.xhr2upload(SERVICE_URL + "/upload", formData, function (prog, value) {
+                    promise = this.xhr2upload(SERVICE_URL + "/photos", formData, function (prog, value) {
                         //console.log("Progress: " + prog + ", Value: " + value);
                         $("#progress").val(value);
                         if (value == 100) {
@@ -1365,7 +1365,7 @@ var UploadPhotoView = BaseSidebarView.extend({
                     });
                 } else {
                     promise = $.ajax({
-                        url: SERVICE_URL + "/upload",
+                        url: SERVICE_URL + "/photos",
                         type: 'POST',
                         data: formData,
                         cache: false,
