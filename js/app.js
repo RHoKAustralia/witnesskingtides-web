@@ -1354,16 +1354,17 @@ var UploadPhotoView = BaseSidebarView.extend({
                 var promise = null;
                 var progressModal = _.template($("#progressModal").html());
                 this.showModal(progressModal({}));
-                if (Modernizr.xhr2) {
-                    promise = this.xhr2upload(SERVICE_URL + "/photos", formData, function (prog, value) {
-                        //console.log("Progress: " + prog + ", Value: " + value);
-                        $("#progress").val(value);
-                        if (value == 100) {
-                            $("#progressMessage").text("Awaiting server response");
-                            //debugger;
-                        }
-                    });
-                } else {
+                // if (Modernizr.xhr2) {
+                //     promise = this.xhr2upload(SERVICE_URL + "/photos", formData, function (prog, value) {
+                //         console.log("Progress: " + prog + ", Value: " + value);
+                //         $("#progress").val(value);
+                //         if (value == 100) {
+                //             $("#progressMessage").text("Awaiting server response");
+                //             //debugger;
+                //         }
+                //     });
+                // } else {
+                    console.log('using $.ajax');
                     promise = $.ajax({
                         url: SERVICE_URL + "/photos",
                         type: 'POST',
@@ -1372,7 +1373,7 @@ var UploadPhotoView = BaseSidebarView.extend({
                         contentType: false,
                         processData: false
                     });
-                }
+                // }
 
                 promise.success(_.bind(function (data) {
                     alert("Photo has been uploaded");
