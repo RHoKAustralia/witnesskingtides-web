@@ -377,26 +377,6 @@ var MapView = Backbone.View.extend({
         });
 
         panel.addControls([
-            /*
-            new OpenLayers.Control.Button({
-                trigger: function () {
-                    window.location.hash = "#home";
-                },
-                displayClass: 'wkt-btn-about'
-            }),
-            new OpenLayers.Control.Button({
-                trigger: function () {
-                    window.location.hash = "#upload";
-                },
-                displayClass: 'wkt-btn-upload'
-            }),
-            new OpenLayers.Control.Button({
-                trigger: function () {
-                    window.location.hash = "#photos";
-                },
-                displayClass: 'wkt-btn-photos'
-            }),
-            */
             new OpenLayers.Control.Button({
                 trigger: function() {
                     that.zoomToMylocation();
@@ -414,9 +394,6 @@ var MapView = Backbone.View.extend({
         this.map.addControl(panel);
 
         //HACK: Have to insert this content at runtime
-        $("div.wkt-btn-aboutItemInactive").html("<i class='fa fa-home'></i>");
-        $("div.wkt-btn-uploadItemInactive").html("<i class='fa fa-camera'></i>");
-        $("div.wkt-btn-photosItemInactive").html("<i class='fa fa-picture-o'></i>");
         $("div.wkt-btn-locateItemInactive").html("<i class='fa fa-location-arrow'></i>");
         $("div.wkt-btn-initialzoomItemInactive").html("<i class='fa fa-arrows-alt'></i>");
 
@@ -900,7 +877,11 @@ var PhotosView = BaseSidebarView.extend({
         for (var i = 0; i < data.photo.length; i++) {
             var photo = data.photo[i];
             var escapedTitle = escape(photo.title);
-            html += "<a href='javascript:void(0)' class='photo-link' data-photo-page-index='" + (pageNo - 1) + "' data-photo-id='" + photo.id + "'><img class='thumbnail flickr-thumbnail' title='" + escapedTitle + "' alt='" + escapedTitle + "' width='64' height='64' src='" + photo.url_s + "' /></a>";
+            var extraClasses = "";
+            if (photo.latitude && photo.longitude) {
+                extraClasses = "flickr-thumbnail-with-geo";
+            }
+            html += "<a href='javascript:void(0)' class='photo-link' data-photo-page-index='" + (pageNo - 1) + "' data-photo-id='" + photo.id + "'><img class='thumbnail flickr-thumbnail " + extraClasses + "' title='" + escapedTitle + "' alt='" + escapedTitle + "' width='64' height='64' src='" + photo.url_s + "' /></a>";
         }
         $("div.album-pager").html(this.pagerTemplate({ pageNo: pageNo, pages: pages }));
         $("a.next-album-page").on("click", _.bind(this.onNextAlbumPage, this));
