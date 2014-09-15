@@ -254,7 +254,8 @@ div.olControlTextButtonPanel .olButton:hover {
  */
 
 .flickr-thumbnail { display: inline; margin-left: 4px; margin-right: 4px; }
-.flickr-thumbnail-with-geo { background-color: #94ADA0 !important; }
+.flickr-thumbnail-without-geo { background-color: #F66464 !important; }
+.flickr-thumbnail-with-geo { background-color: #64F681 !important; }
 .album-pager { display: block; }
 .flickr-thumbnail-grid { display: block; margin-top: 50px; }
 

@@ -881,6 +881,8 @@ var PhotosView = BaseSidebarView.extend({
             var extraClasses = "";
             if (photo.latitude && photo.longitude) {
                 extraClasses = "flickr-thumbnail-with-geo";
+            } else {
+                extraClasses = "flickr-thumbnail-without-geo";
             }
             var url = photo.url_s || "../images/error.png";
             html += "<a href='javascript:void(0)' class='photo-link' data-photo-page-index='" + (pageNo - 1) + "' data-photo-id='" + photo.id + "'><img class='thumbnail flickr-thumbnail " + extraClasses + "' title='" + escapedTitle + "' alt='" + escapedTitle + "' width='64' height='64' src='" + url + "' /></a>";
