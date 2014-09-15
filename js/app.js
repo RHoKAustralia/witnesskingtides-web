@@ -840,6 +840,7 @@ var PhotosView = BaseSidebarView.extend({
     icon: "fa fa-picture-o",
     initialize: function(options) {
         this.template = _.template($("#photosSidebar").html());
+        this.legendTemplate = _.template($("#photosLegend").html());
         this.pagerTemplate = _.template($("#albumPager").html());
     },
     render: function () {
@@ -870,7 +871,7 @@ var PhotosView = BaseSidebarView.extend({
         var pageNo = (cache.page + 1);
         var pages = cache.pages;
         var total = cache.total;
-        var html = "";
+        var html = this.legendTemplate();
         var escape = function (str) {
             return str.replace(/'/g, "&apos;").replace(/"/g, "&quot;");
         };
@@ -881,7 +882,8 @@ var PhotosView = BaseSidebarView.extend({
             if (photo.latitude && photo.longitude) {
                 extraClasses = "flickr-thumbnail-with-geo";
             }
-            html += "<a href='javascript:void(0)' class='photo-link' data-photo-page-index='" + (pageNo - 1) + "' data-photo-id='" + photo.id + "'><img class='thumbnail flickr-thumbnail " + extraClasses + "' title='" + escapedTitle + "' alt='" + escapedTitle + "' width='64' height='64' src='" + photo.url_s + "' /></a>";
+            var url = photo.url_s || "../images/error.png";
+            html += "<a href='javascript:void(0)' class='photo-link' data-photo-page-index='" + (pageNo - 1) + "' data-photo-id='" + photo.id + "'><img class='thumbnail flickr-thumbnail " + extraClasses + "' title='" + escapedTitle + "' alt='" + escapedTitle + "' width='64' height='64' src='" + url + "' /></a>";
         }
         $("div.album-pager").html(this.pagerTemplate({ pageNo: pageNo, pages: pages }));
         $("a.next-album-page").on("click", _.bind(this.onNextAlbumPage, this));
