@@ -1211,7 +1211,25 @@ var UploadPhotoView = BaseSidebarView.extend({
             el.html("(Manually change)");
         }
     },
+    updateLocationFromExif: function(exif) {
+        var ddLon = exif.GPSLongitude[0] + (exif.GPSLongitude[1] / 60) + (exif.GPSLatitude[2] / 3600);
+        var ddLat = exif.GPSLatitude[0] + (exif.GPSLatitude[1] / 60) + (exif.GPSLatitude[2] / 3600);
+        if (exif.GPSLongitudeRef == "W")
+            ddLon = ddLon * -1;
+        if (exif.GPSLatitudeRef == "S")
+            ddLat = ddLat * -1;
+        $("#photoLocation").val(ddLon + " " + ddLat);
+        alert("We found geographic information in your photo, the location field has been updated with this information");
+    },
     onPhotoFileChanged: function(e) {
+        var _self = this;
+        EXIF.getData(e.currentTarget.files[0], function() {
+            if (this.exifdata.GPSLatitude && this.exifdata.GPSLongitude && this.exifdata.GPSLatitudeRef && this.exifdata.GPSLongitudeRef) {
+                _self.updateLocationFromExif(this.exifdata);
+            } else {
+                logger.logi("Missing or Insufficient EXIF GeoTag metadata");
+            }
+        });
         $("#photoFileButton").removeClass("btn-danger").addClass("btn-success");
         $("#photoFileButtonText").html("Photo Selected");
     },
