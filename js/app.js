@@ -1389,13 +1389,26 @@ function applyMargins() {
             .css("margin-left", 0);
         mapCtrl.css("left", "0px");
     } else {
-        mapCtrl.css("left", sidebar.width() + "px");
-        zoomCtrl
-            .css("margin-left", 30)
-            .addClass("zoom-top-opened-sidebar")
-            .removeClass("zoom-top-collapsed");
-        toolbarCtrl
-            .css("margin-left", 30);
+        var el = $("button.navbar-toggle");
+        //let the sidebar "slide-over" the map in mobile display
+        //instead of "shrinking" it.
+        if (el.is(":visible")) {
+            mapCtrl.css("left", "0px");
+            zoomCtrl
+                .css("margin-left", 0)
+                .removeClass("zoom-top-opened-sidebar")
+                .addClass("zoom-top-collapsed");
+            toolbarCtrl
+                .css("margin-left", 0);
+        } else {
+            mapCtrl.css("left", sidebar.width() + "px");
+            zoomCtrl
+                .css("margin-left", 30)
+                .addClass("zoom-top-opened-sidebar")
+                .removeClass("zoom-top-collapsed");
+            toolbarCtrl
+                .css("margin-left", 30);
+        }
         sidebar.height(getDesiredHeight(sidebar));
     }
     EventAggregator.trigger("resizeMapDomElement");
