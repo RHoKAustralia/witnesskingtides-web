@@ -26,10 +26,6 @@ function RollupNavbar() {
         el[0].click();
 }
 
-//Test account settings
-var FLICKR_USER_ID = '110846737@N06';
-var FLICKR_API_KEY = 'affd35180d0689ad7ca999c1619d0e6d';
-
 var LAYER_GOOG_PHYS = "goog-phys";
 var LAYER_GOOG_STREET = "goog-street";
 var LAYER_GOOG_HYBRID = "goog-hybrid";
@@ -163,7 +159,7 @@ var FlickrPhotoCache = OpenLayers.Class({
             console.log("Flickr date range: " + dtStart.unix() + " to " + dtEnd.unix());
             params.min_taken_date = dtStart.unix();
             params.max_taken_date = dtEnd.unix();
-        } 
+        }
         return params;
     },
     /**
@@ -417,7 +413,7 @@ var MapView = Backbone.View.extend({
             this.createTideLayer();
         }, this));
 
-		
+
 	},
 	initialView: function() {
 	    var bounds = new OpenLayers.Bounds(10470115.700925, -5508791.4417243, 19060414.686531, -812500.42453675);
@@ -751,7 +747,7 @@ var MapView = Backbone.View.extend({
 	},
 	onPhotoFeatureSelected: function(event) {
 	    this.selectControl.unselect(event.feature);
-	    
+
         if (event.feature.cluster.length == 1) {
             this.onShowPhotos({ photos: event.feature.cluster });
         } else {
@@ -1141,16 +1137,16 @@ var UploadPhotoView = BaseSidebarView.extend({
                 var promise = null;
                 var progressModal = _.template($("#progressModal").html());
                 this.showModal(progressModal({}));
-                // if (Modernizr.xhr2) {
-                //     promise = this.xhr2upload(SERVICE_URL + "/photos", formData, function (prog, value) {
-                //         console.log("Progress: " + prog + ", Value: " + value);
-                //         $("#progress").val(value);
-                //         if (value == 100) {
-                //             $("#progressMessage").text("Awaiting server response");
-                //             //debugger;
-                //         }
-                //     });
-                // } else {
+                if (Modernizr.xhr2) {
+                    promise = this.xhr2upload(SERVICE_URL + "/photos", formData, function (prog, value) {
+                        console.log("Progress: " + prog + ", Value: " + value);
+                        $("#progress").val(value);
+                        if (value == 100) {
+                            $("#progressMessage").text("Awaiting server response");
+                            //debugger;
+                        }
+                    });
+                } else {
                     console.log('using $.ajax');
                     promise = $.ajax({
                         url: SERVICE_URL + "/photos",
@@ -1160,7 +1156,7 @@ var UploadPhotoView = BaseSidebarView.extend({
                         contentType: false,
                         processData: false
                     });
-                // }
+                }
 
                 promise.success(_.bind(function (data) {
                     alert("Photo has been uploaded");
