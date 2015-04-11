@@ -411,6 +411,7 @@ var MapView = Backbone.View.extend({
         $.getJSON(SERVICE_URL + "/tide_events", _.bind(function (tides) {
             this.tideEvents = tides;
             this.createTideLayer();
+            EventAggregator.trigger("requestLegendUpdate");
         }, this));
 
 
