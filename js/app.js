@@ -1327,7 +1327,7 @@ var app = {
             this.router.mapView.setActiveBaseLayer($(e.target));
         }, this));
         $(document).on("click", "ul.navbar-nav a", function (e) {
-            var el = $(e.target);
+            var el = $(this);
             if (el.closest("li.active").length == 1 && !el.hasClass("base-layer-item")) {
                 RollupNavbar();
             } else if (el.hasClass("base-layer-item")) {
