@@ -7,6 +7,7 @@ Modernizr.addTest('xhr2', 'FormData' in window && 'ProgressEvent' in window);
 
 var EventAggregator = _.extend({}, Backbone.Events);
 var SERVICE_URL = "http://kingtides-api-env-fubbpjhd29.elasticbeanstalk.com";
+// SERVICE_URL = "http://localhost:3000"; // for local testing
 
 var PROJ_LL84        = new OpenLayers.Projection("EPSG:4326");
 var PROJ_WEBMERCATOR = new OpenLayers.Projection("EPSG:900913");
@@ -399,7 +400,7 @@ var MapView = Backbone.View.extend({
         this.createFlickrPhotoLayer();
         this.map.events.register("moveend", this, this.onMoveEnd);
         this.map.events.register("changebaselayer", this, this.onBaseLayerChange);
-        this.setActiveBaseLayer($("a.base-layer-item[data-layer-name='goog-phys']"));
+        this.setActiveBaseLayer($("a.base-layer-item[data-layer-name='goog-satellite']"));
         //Initial view is Australia
         this.initialView();
         EventAggregator.on("addNewPhotoMarker", _.bind(this.onAddNewPhotoMarker, this));
