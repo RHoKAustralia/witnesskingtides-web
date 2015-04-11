@@ -1168,6 +1168,13 @@ var UploadPhotoView = BaseSidebarView.extend({
                         $(".modal-backdrop").remove();
                         EventAggregator.trigger("resetPhotoFilter");
                     }
+                    var value = $("#photoLocation").val();
+                    if (value != "") {
+                        var coords = value.split(" ");
+                        data.Longitude = coords[0];
+                        data.Latitude = coords[1];
+                    }
+                    data.FlickrId = data.photoId;
                     this.insertPhotoMarker(data.Longitude, data.Latitude, data.FlickrId);
                     //Go home on completion
                     window.location.hash = "#home";
