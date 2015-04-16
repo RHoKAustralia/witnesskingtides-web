@@ -266,8 +266,14 @@
                         <div class="modal-body">
                             <p>The tidal gauge in this area is measured at <strong><%= location %></strong>.</p>
                             <hr />
+                            <% if (!expired) { %>
                             <p>The king tide will occur on <strong><%= startDate %></strong></p>
                             <p>You can witness the effect of a king tide in this area between <strong><%= range() %></strong></p>.
+                            <% } %>
+                            <div class="well">
+                                To find the published Bureau of Meteorology time tables for this tidal guage go to <br />
+                                <a target="_blank" href="http://www.bom.gov.au/australia/tides/">http://www.bom.gov.au/australia/tides/</a>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <a class="btn btn-primary" href="http://www.witnesskingtides.org/participate/register-to-participate.aspx" target="_blank">Register Now</a>

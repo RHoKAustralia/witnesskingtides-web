@@ -772,6 +772,7 @@ var MapView = Backbone.View.extend({
         this.selectControl.unselect(event.feature);
         this.showModal(this.tideModalTemplate({
             location: event.feature.attributes.event.location,
+            expired: moment().utc().unix() > moment(event.feature.attributes.event.eventEnd).utc().unix(),
             startDate: moment(event.feature.attributes.event.eventStart).format("Do MMM H:mm A"),
             range: function () {
                 var start = moment(event.feature.attributes.event.eventStart);
