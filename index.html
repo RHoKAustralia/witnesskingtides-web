@@ -266,13 +266,14 @@
                         <div class="modal-body">
                             <p>The tidal gauge in this area is measured at <strong><%= location %></strong>.</p>
                             <hr />
-                            <% if (!expired) { %>
-                            <p>The king tide will occur on <strong><%= startDate %></strong></p>
-                            <p>You can witness the effect of a king tide in this area between <strong><%= range() %></strong></p>.
-                            <% } %>
+                            <p class='loading'><i class="loading fa fa-spinner fa-spin"></i> Loading...</p>
+                            <p class='showHighTide'>Next High Tide <strong class='highTide'><%= highTideDate %></strong></p>
+                            <p class='showLowTide'>Next Low Tide <strong class='lowTide'><%= lowTideDate %></strong></p>
+                            <p class='showStartDate'>The king tide will occur on <strong class='startDate'><%= startDate %></strong></p>
+                            <p class='showStartDate'>You can witness the effect of a king tide in this area between <strong class='dateRange'><%= range() %></strong></p>
                             <div class="well">
-                                To find the published Bureau of Meteorology time tables for this tidal guage go to <br />
-                                <a target="_blank" href="http://www.bom.gov.au/australia/tides/">http://www.bom.gov.au/australia/tides/</a>
+                                To find the published Bureau of Meteorology time tables for this tidal gauge go to <br />
+								<a target="_blank" href="http://www.bom.gov.au/australia/tides/#!/<%= urlfragment %>">http://www.bom.gov.au/australia/tides/#!/<%= urlfragment %></a>
                             </div>
                         </div>
                         <div class="modal-footer">
