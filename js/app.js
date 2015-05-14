@@ -6,7 +6,7 @@ Modernizr.addTest('formdata', 'FormData' in window);
 Modernizr.addTest('xhr2', 'FormData' in window && 'ProgressEvent' in window);
 
 var EventAggregator = _.extend({}, Backbone.Events);
-var SERVICE_URL = "http://kingtides-api-env-fubbpjhd29.elasticbeanstalk.com";
+var SERVICE_URL = "https://shielded-sea-6230.herokuapp.com";
 // SERVICE_URL = "http://localhost:3000"; // for local testing
 SERVICE_URL = "https://shielded-sea-6230.herokuapp.com";
 
