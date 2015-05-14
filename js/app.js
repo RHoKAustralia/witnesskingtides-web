@@ -6,8 +6,7 @@ Modernizr.addTest('formdata', 'FormData' in window);
 Modernizr.addTest('xhr2', 'FormData' in window && 'ProgressEvent' in window);
 
 var EventAggregator = _.extend({}, Backbone.Events);
-var SERVICE_URL = "http://shielded-sea-6230.herokuapp.com";
-//var SERVICE_URL = "http://kingtides-api-env-fubbpjhd29.elasticbeanstalk.com";
+var SERVICE_URL = "https://shielded-sea-6230.herokuapp.com";
 // SERVICE_URL = "http://localhost:3000"; // for local testing
 
 var PROJ_LL84        = new OpenLayers.Projection("EPSG:4326");
@@ -519,7 +518,8 @@ var MapView = Backbone.View.extend({
             }
         }
     },
-    showModal: function(html) {
+    showModal: function(html, callback) {
+        var that = this;
         if (this.activeModal) {
             this.activeModal.remove();
             //You'd think boostrap modal would've removed this for you?
@@ -530,7 +530,12 @@ var MapView = Backbone.View.extend({
         this.activeModal.modal('show').on("hidden.bs.modal", function(e) {
             //You'd think boostrap modal would've removed this for you?
             $(".modal-backdrop").remove();
+        }).on("shown.bs.modal", function(e) {
+            console.log("hello: " + typeof(callback));
+            if(callback)
+                callback(that.activeModal);
         });
+
     },
     onBaseLayerChange: function(e) {
 
@@ -778,16 +783,83 @@ var MapView = Backbone.View.extend({
     },
     onTideSelected: function(event) {
         this.selectControl.unselect(event.feature);
+        this.showTideModal(event.feature.attributes.event, true);
+        this.getTideDetails(event.feature.attributes.id);
+    },
+    formatTime: function(end, start){
+        if(!start) start = moment();
+        var days = moment(end).diff(start, 'days');
+        var hours = moment(end).diff(start, 'hours') % 24;
+        var minutes = moment(end).diff(start, 'minutes') % 60;
+
+        var duration = ((days > 0) ? days + ' days ' : '') + ((hours > 1) ? hours + ' hrs ' : (hours > 0) ? '1 hr ' : '') + ((minutes > 0) ? minutes + ' min' : '');
+        return duration;
+    },
+    populateModal: function(modal, event, populateData){
+        modal.find(".showStartDate").toggle(event.startDate ? true : false);
+        modal.find(".showHighTide").toggle(event.highTideOccurs ? true : false);
+        modal.find(".showLowTide").toggle(event.lowTideOccurs ? true : false);
+
+        if(populateData){
+            modal.find(".startDate").text(moment(event.eventStart).format("Do MMM H:mm A") + " (in " + this.formatTime(event.eventStart) + ")");
+            modal.find(".highTide").text(moment(event.highTideOccurs).format("Do MMM H:mm A") + " (in " + this.formatTime(event.highTideOccurs) + ")");
+            modal.find(".lowTide").text(moment(event.lowTideOccurs).format("Do MMM H:mm A") + " (in " + this.formatTime(event.lowTideOccurs) + ")");
+            modal.find(".dateRange").text(this.rangeText(event));
+        }
+    },
+    rangeText: function(event){
+        var start = moment(event.eventStart);
+        var end = moment(event.eventEnd);
+        return start.format("Do MMM") + " to " + end.format("Do MMM");
+    },
+    getUrlFragment: function(event){
+        return ((event.state + "-" + event.location).toLowerCase().replace(/ /gi,'-'));
+    },
+    showTideModal: function(event){
+        var now = new Date();
+        var that = this;
         this.showModal(this.tideModalTemplate({
-            location: event.feature.attributes.event.location,
-            expired: moment().utc().unix() > moment(event.feature.attributes.event.eventEnd).utc().unix(),
-            startDate: moment(event.feature.attributes.event.eventStart).format("Do MMM H:mm A"),
+           location: event.location,
+            startDate: moment(event.eventStart).format("Do MMM H:mm A") + " (in " + this.formatTime(event.eventStart) + ")",
+            endDate: moment(event.eventEnd).format("Do MMM H:mm A") + " (in " + this.formatTime(event.eventEnd) + ")",
+            highTideDate: moment(event.highTideOccurs).format("Do MMM H:mm A") + " (in " + this.formatTime(event.highTideOccurs) + ")",
+            lowTideDate: moment(event.lowTideOccurs).format("Do MMM H:mm A") + " (in " + this.formatTime(event.lowTideOccurs) + ")",
             range: function () {
-                var start = moment(event.feature.attributes.event.eventStart);
-                var end = moment(event.feature.attributes.event.eventEnd);
+                var start = moment(event.eventStart);
+                var end = moment(event.eventEnd);
                 return start.format("Do MMM") + " to " + end.format("Do MMM");
-            }
-        }));
+           },
+            urlfragment: this.getUrlFragment(event)
+        }), function(modal){
+            that.populateModal(modal, event);
+        });
+    },
+    getTideDetails: function(event_id){
+        var that = this;
+        return $.ajax({
+            url: SERVICE_URL + "/tide_events/" + event_id,
+            type: 'GET',
+            success: function (event) {
+                that.activeModal.off('shown.bs.modal').on("shown.bs.modal", function(e) {
+                    that.activeModal.find(".loading").hide();
+                    that.populateModal(that.activeModal, event, true);
+                }).trigger('shown.bs.modal');
+            },
+            error: function(){
+                console.log("Error getting data");
+            },
+            cache: false
+        });
+
+    },
+    getTideEvents: function(){
+        return this.tideEvents;
+    },
+    getTideEvent: function(id){
+        var d = _.filter(this.tideEvents,function(item){ return item.id == id;});
+        if(d.length == 1)
+            return d[0];
+        return d;
     }
 });
 
