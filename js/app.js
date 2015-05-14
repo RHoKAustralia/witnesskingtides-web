@@ -54,6 +54,7 @@ var FlickrPhotoCache = OpenLayers.Class({
         EventAggregator.on("getPhotoPageBounds", _.bind(this.onGetPhotoPageBounds, this));
         EventAggregator.on("resetPhotoFilter", _.bind(this.onResetPhotoFilter, this));
         EventAggregator.on("applyPhotoFilter", _.bind(this.onApplyPhotoFilter, this));
+        EventAggregator.on("getCurrentPhotoFilter", _.bind(this.onCurrentPhotoFilterRequest, this));
     },
     getMapBounds: function() {
         var bounds = this._map.getExtent();
@@ -135,6 +136,10 @@ var FlickrPhotoCache = OpenLayers.Class({
             e.callback(bounds);
         }
     },
+    onCurrentPhotoFilterRequest: function(args) {
+        if (typeof(args.callback) == 'function')
+            args.callback(this.args || {});
+    },
     onResetPhotoFilter: function() {
         this.args = null;
         this.reset();
@@ -149,18 +154,20 @@ var FlickrPhotoCache = OpenLayers.Class({
             method: 'flickr.photos.search',
             extras: 'geo,url_s,url_c,url_o,date_taken,date_upload,owner_name,original_format,o_dims,views',
             per_page: this.photosPerPage,
-            page: (this.page + 1)/*,
-            bbox: this.getMapBounds()
-            */
+            page: (this.page + 1)
         };
 
         if (this.args && this.args.year) {
-            console.log("Filtering by year: " + this.args.year);
+            logger.logi("Filtering by year: " + this.args.year);
             var dtStart = moment.utc([this.args.year, 0, 1]);
             var dtEnd = moment.utc([this.args.year, 11, 31]);
-            console.log("Flickr date range: " + dtStart.unix() + " to " + dtEnd.unix());
+            logger.logi("Flickr date range: " + dtStart.unix() + " to " + dtEnd.unix());
             params.min_taken_date = dtStart.unix();
             params.max_taken_date = dtEnd.unix();
+        }
+        if (this.args && this.args.bbox) {
+            params.bbox = this.getMapBounds().join(",");
+            logger.logi("Filtering by bbox: " + params.bbox);
         }
         return params;
     },
@@ -1005,24 +1012,40 @@ var PhotosView = BaseSidebarView.extend({
         //You'd think boostrap modal would've removed this for you?
         $(".modal-backdrop").remove();
         var dt = new Date();
-        var filterModal = $(templ({ year: this.filterYear || dt.getFullYear(), fromYear: 2011, toYear: dt.getFullYear() }));
-        $("body").append(filterModal);
-        filterModal.modal('show').on("hidden.bs.modal", function (e) {
-            filterModal.remove();
-            //You'd think boostrap modal would've removed this for you?
-            $(".modal-backdrop").remove();
+        var collectFilter = function(modal) {
+            var p = {};
+            var elYear = modal.find("input.filter-year");
+            var elBBOX = modal.find("input.filter-bbox");
+            if (elYear.is(":checked"))
+                p.year = $("#filterYear").val();
+            if (elBBOX.is(":checked"))
+                p.bbox = true;
+            return p;
+        };
+        
+        EventAggregator.trigger("getCurrentPhotoFilter", {
+            callback: function(args) {
+                var filterModal = $(templ({ bbox: args.bbox, year: args.year || dt.getFullYear(), fromYear: 2011, toYear: dt.getFullYear() }));
+                $("body").append(filterModal);
+                
+                filterModal.modal('show').on("hidden.bs.modal", function (e) {
+                    filterModal.remove();
+                    //You'd think boostrap modal would've removed this for you?
+                    $(".modal-backdrop").remove();
+                });
+                filterModal.find("a.apply-filter").on("click", _.bind(function (e) {
+                    EventAggregator.trigger("applyPhotoFilter", collectFilter(filterModal));
+                    filterModal.modal("hide");
+                }, this));
+                filterModal.find("a.reset-filter").on("click", _.bind(function (e) {
+                    EventAggregator.trigger("resetPhotoFilter");
+                    filterModal.modal("hide");
+                }, this));
+                filterModal.find("a.cancel-btn").on("click", _.bind(function (e) {
+                    filterModal.modal("hide");
+                }, this));
+            }
         });
-        filterModal.find("a.apply-filter").on("click", _.bind(function (e) {
-            EventAggregator.trigger("applyPhotoFilter", { year: $("#filterYear").val() });
-            filterModal.modal("hide");
-        }, this));
-        filterModal.find("a.reset-filter").on("click", _.bind(function (e) {
-            EventAggregator.trigger("resetPhotoFilter");
-            filterModal.modal("hide");
-        }, this));
-        filterModal.find("a.cancel-btn").on("click", _.bind(function (e) {
-            filterModal.modal("hide");
-        }, this));
     }
 });
 
