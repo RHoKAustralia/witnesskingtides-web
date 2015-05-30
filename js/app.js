@@ -204,7 +204,7 @@ var PhotoCache = OpenLayers.Class({
             this.photosPerPage = options.photosPerPage;
         //EventAggregator.on("getPhotoPageBounds", _.bind(this.onGetPhotoPageBounds, this));
         // EventAggregator.on("resetPhotoFilter", _.bind(this.onResetPhotoFilter, this));
-        // EventAggregator.on("applyPhotoFilter", _.bind(this.onApplyPhotoFilter, this));
+        EventAggregator.on("applyPhotoFilter", _.bind(this.onApplyPhotoFilter, this));
         // EventAggregator.on("getCurrentPhotoFilter", _.bind(this.onCurrentPhotoFilterRequest, this));
     },
     getZoomLevel: function() {
@@ -299,7 +299,7 @@ var PhotoCache = OpenLayers.Class({
         if (this.args && this.args.bbox) {
             params.bbox = this.getMapBounds().join(",");
             params.zoom = this.getZoomLevel();
-            logger.logi("Filtering by bbox: " + params.bbox);
+            logger.logi("Filtering by bbox photocache: " + params.bbox);
         }
         return params;
     },
@@ -834,8 +834,8 @@ var MapView = Backbone.View.extend({
 		this.updateSelectControl();
 		this.photosLayer.events.on({ "featureselected": _.bind(this.onPhotoFeatureSelected, this) });
 
-		EventAggregator.on("flickrCacheReset", _.bind(this.onFlickrCacheReset, this));
-		EventAggregator.on("flickrPageLoaded", _.bind(this.onFlickrPageLoaded, this));
+		// EventAggregator.on("flickrCacheReset", _.bind(this.onFlickrCacheReset, this));
+		// EventAggregator.on("flickrPageLoaded", _.bind(this.onFlickrPageLoaded, this));
         EventAggregator.on("photoPageLoaded", _.bind(this.onPhotoPageLoaded, this));
 	},
 	onFlickrCacheReset: function() {
@@ -846,23 +846,23 @@ var MapView = Backbone.View.extend({
         var data = cache.getCurrentPageData();
         var features = [];
 
-        for (var i = 0; i < data.photo.length; i++) {
-            var photo = data.photo[i];
-            var geom = new OpenLayers.Geometry.Point(photo.longitude, photo.latitude);
-            geom.transform(PROJ_LL84, this.map.getProjectionObject());
-            features.push(
-                new OpenLayers.Feature.Vector(
-                    geom,
-                    photo
-                )
-            );
-        }
+        // for (var i = 0; i < data.photo.length; i++) {
+        //     var photo = data.photo[i];
+        //     var geom = new OpenLayers.Geometry.Point(photo.longitude, photo.latitude);
+        //     geom.transform(PROJ_LL84, this.map.getProjectionObject());
+        //     features.push(
+        //         new OpenLayers.Feature.Vector(
+        //             geom,
+        //             photo
+        //         )
+        //     );
+        // }
 
-        this.photosLayer.addFeatures(features);
+        //this.photosLayer.addFeatures(features);
 
         //Force re-clustering
-        this.flickrCluster.clusters = null;
-        this.flickrCluster.cluster();
+        // this.flickrCluster.clusters = null;
+        // this.flickrCluster.cluster();
     },
     onPhotoPageLoaded: function(e) {
         var cache = e.cache;
