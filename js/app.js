@@ -228,7 +228,7 @@ var PhotoCache = OpenLayers.Class({
     },
     fetchPage: function (pageIndex) {
         this.page = pageIndex;
-        EventAggregator.trigger("flickrPageLoading");
+        
         var that = this;
         var promise = $.getJSON(
             SERVICE_URL + "/photos/search",
@@ -315,7 +315,6 @@ var PhotoCache = OpenLayers.Class({
         this.page = -1,
         this.pages = 0;
         this.total = 0;
-        EventAggregator.trigger("flickrCacheReset");
         this.fetchPage(0);
     }
 });
@@ -424,6 +423,7 @@ var MapView = Backbone.View.extend({
     photoModalTemplate: null,
     selectControl: null,
     bManualLocationRecording: false,
+    pointsOnMap: null,
 	initialize: function(options) {
         this.tideModalTemplate = _.template($("#tideModal").html());
         this.photoModalTemplate = _.template($("#photoModal").html());
@@ -771,12 +771,26 @@ var MapView = Backbone.View.extend({
         this.selectControl.activate();
     },
     onAddNewPhotoMarker: function (data) {
+        var features = [];
+        for (var i = 0; this.pointsOnMap && i < this.pointsOnMap.length; i++) {
+            var photo = this.pointsOnMap[i];
+            var geom = new OpenLayers.Geometry.Point(photo.longitude, photo.latitude);
+            geom.transform(PROJ_LL84, this.map.getProjectionObject());
+            features.push(
+                new OpenLayers.Feature.Vector(
+                    geom,
+                    photo
+                )
+            );
+        }
         var pt = new OpenLayers.Geometry.Point(data.lon, data.lat);
         pt.transform(PROJ_LL84, PROJ_WEBMERCATOR);
-        this.photosLayer.addFeatures([
+        features.push(
             new OpenLayers.Feature.Vector(
-                pt, { flickrId: data.flickrId })
-        ]);
+                pt, { flickrId: data.flickrId, latitude: data.lat, longitude: data.lon })
+        );
+        this.photosLayer.addFeatures(features);
+
         this.photosLayer.redraw();
     },
 	createFlickrPhotoLayer: function() {
@@ -868,7 +882,7 @@ var MapView = Backbone.View.extend({
         var cache = e.cache;
         var data = cache.getCurrentPageData();
         var features = [];
-
+        this.pointsOnMap = data;
         for (var i = 0; i < data.length; i++) {
             var photo = data[i];
             var geom = new OpenLayers.Geometry.Point(photo.longitude, photo.latitude);
@@ -905,10 +919,10 @@ var MapView = Backbone.View.extend({
 
             var bottom, top, left, right;
             for(var j = 0; j < e.photos.length; j++){
-                if(!bottom || e.photos[j].attributes.latitude < bottom) bottom = e.photos[j].attributes.latitude;
-                if(!top || e.photos[j].attributes.latitude > top) top = e.photos[j].attributes.latitude;
-                if(!left || e.photos[j].attributes.longitude < left) left = e.photos[j].attributes.longitude;
-                if(!right || e.photos[j].attributes.longitude > right) right = e.photos[j].attributes.longitude;
+                if(!bottom || Number.parseFloat(e.photos[j].attributes.latitude) < bottom) bottom = Number.parseFloat(e.photos[j].attributes.latitude);
+                if(!top || Number.parseFloat(e.photos[j].attributes.latitude) > top) top = Number.parseFloat(e.photos[j].attributes.latitude);
+                if(!left || Number.parseFloat(e.photos[j].attributes.longitude) < left) left = Number.parseFloat(e.photos[j].attributes.longitude);
+                if(!right || Number.parseFloat(e.photos[j].attributes.longitude) > right) right = Number.parseFloat(e.photos[j].attributes.longitude);
             }
             params.bbox =  left + ',' + bottom + ',' + right + ',' + top;
             params.zoom = 10;
@@ -924,9 +938,10 @@ var MapView = Backbone.View.extend({
                     for(var j = 0; j < e.photos.length; j++){
                         var photo = data.photos.photo[i];
 
-                        if(e.photos[j].attributes.latitude == photo.latitude 
-                            && e.photos[j].attributes.longitude == photo.longitude
-                            && !e.photos[j].attributes.url_s)
+                        // comment out cause inconsistent GPS coordinates (an instance where we truncate 1 sig fig vs Flickr? so this is not consistent)
+                        // if(Number.parseFloat(e.photos[j].attributes.latitude) == Number.parseFloat(photo.latitude) 
+                        //     && Number.parseFloat(e.photos[j].attributes.longitude) == Number.parseFloat(photo.longitude)
+                        if(!e.photos[j].attributes.url_s)
                         {
                             e.photos[j].attributes.title = photo.title;
                             e.photos[j].attributes.url_c = photo.url_c;
@@ -986,7 +1001,8 @@ var MapView = Backbone.View.extend({
 	            thumbnail: (showLoading ? '/images/loading.gif' : args.getThumbnailUrl(args.photos[i]))
 	        });
 	    }
-        if(showLoading) BLUEIMP_GALLERY_OPTIONS.stretchImages = false;
+        BLUEIMP_GALLERY_OPTIONS.stretchImages = !showLoading;
+        
 	    blueimp.Gallery(links, BLUEIMP_GALLERY_OPTIONS);
 
 	},
