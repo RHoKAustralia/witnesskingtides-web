@@ -7,7 +7,7 @@ Modernizr.addTest('xhr2', 'FormData' in window && 'ProgressEvent' in window);
 
 var EventAggregator = _.extend({}, Backbone.Events);
 var SERVICE_URL = "https://shielded-sea-6230.herokuapp.com";
-// SERVICE_URL = "http://localhost:3000"; // for local testing
+SERVICE_URL = "http://localhost:3000"; // for local testing
 
 var PROJ_LL84        = new OpenLayers.Projection("EPSG:4326");
 var PROJ_WEBMERCATOR = new OpenLayers.Projection("EPSG:900913");
@@ -55,6 +55,9 @@ var FlickrPhotoCache = OpenLayers.Class({
         EventAggregator.on("applyPhotoFilter", _.bind(this.onApplyPhotoFilter, this));
         EventAggregator.on("getCurrentPhotoFilter", _.bind(this.onCurrentPhotoFilterRequest, this));
     },
+    getZoomLevel: function() {
+        return this._map.getZoom();
+    },
     getMapBounds: function() {
         var bounds = this._map.getExtent();
         bounds.transform(this._map.getProjectionObject(), PROJ_LL84);
@@ -76,7 +79,7 @@ var FlickrPhotoCache = OpenLayers.Class({
         EventAggregator.trigger("flickrPageLoading");
         var that = this;
         var promise = $.getJSON(
-            SERVICE_URL + "/photos/search",
+            SERVICE_URL + "/flickr/search",
             this.getRequestParams()
         );
         promise.done(function (data) {
@@ -164,8 +167,138 @@ var FlickrPhotoCache = OpenLayers.Class({
             params.min_taken_date = dtStart.unix();
             params.max_taken_date = dtEnd.unix();
         }
+
         if (this.args && this.args.bbox) {
             params.bbox = this.getMapBounds().join(",");
+            params.zoom = this.getZoomLevel();
+            logger.logi("Filtering by bbox: " + params.bbox);
+        }
+        return params;
+    },
+    /**
+     * Clears the cache and re-requests the first "page" of photos from flickr using the
+     * new extents
+     */
+    updateExtents: function() {
+        this.reset();
+    },
+    reset: function () {
+        this._dataByPage = [];
+        this.page = -1,
+        this.pages = 0;
+        this.total = 0;
+        EventAggregator.trigger("flickrCacheReset");
+        this.fetchPage(0);
+    }
+});
+var PhotoCache = OpenLayers.Class({
+    photosPerPage: 50,
+    page: -1,
+    pages: 0,
+    total: 0,
+    _dataByPage: [],
+    _map: null,
+    initialize: function (options) {
+        this._map = options.map;
+        if (_.has(options, "photosPerPage"))
+            this.photosPerPage = options.photosPerPage;
+        //EventAggregator.on("getPhotoPageBounds", _.bind(this.onGetPhotoPageBounds, this));
+        // EventAggregator.on("resetPhotoFilter", _.bind(this.onResetPhotoFilter, this));
+        // EventAggregator.on("applyPhotoFilter", _.bind(this.onApplyPhotoFilter, this));
+        // EventAggregator.on("getCurrentPhotoFilter", _.bind(this.onCurrentPhotoFilterRequest, this));
+    },
+    getZoomLevel: function() {
+        return this._map.getZoom();
+    },
+    getMapBounds: function() {
+        var bounds = this._map.getExtent();
+        bounds.transform(this._map.getProjectionObject(), PROJ_LL84);
+        return [
+            bounds.left,
+            bounds.bottom,
+            bounds.right,
+            bounds.top
+        ];
+    },
+    getCurrentPageData: function() {
+        return this._dataByPage[this.page];
+    },
+    getPageData: function (pageIndex) {
+        return this._dataByPage[pageIndex];
+    },
+    fetchPage: function (pageIndex) {
+        this.page = pageIndex;
+        EventAggregator.trigger("flickrPageLoading");
+        var that = this;
+        var promise = $.getJSON(
+            SERVICE_URL + "/photos/search",
+            this.getRequestParams()
+        );
+        promise.done(function (data) {
+            var photos = [];
+            for(var key in data){
+                for(var i = 0; i < data[key].cnt; i++){
+                    photos.push({
+                        latitude: data[key].pos[0]
+                        ,longitude: data[key].pos[1]
+                    });
+                }
+            }
+            that._dataByPage[0] = photos;
+            that.page = 0;
+            that.pages = 1;
+            that.total = parseInt(photos.length, 10);
+            EventAggregator.trigger("photoPageLoaded", { cache: that, firstLoad: true });
+        }).fail(function() {
+            //debugger;
+        });
+    },
+    onGetPhotoPageBounds: function (e) {
+        if (typeof (this._dataByPage[this.page]) == 'undefined') {
+            e.callback(null);
+        } else {
+            var bounds = new OpenLayers.Bounds();
+            var photoset = this._dataByPage[this.page];
+            for (var i = 0; i < photoset.photo.length; i++) {
+                var photo = photoset.photo[i];
+                bounds.extendXY(photo.longitude, photo.latitude);
+            }
+            e.callback(bounds);
+        }
+    },
+    onCurrentPhotoFilterRequest: function(args) {
+        if (typeof(args.callback) == 'function')
+            args.callback(this.args || {});
+    },
+    onResetPhotoFilter: function() {
+        this.args = null;
+        this.reset();
+    },
+    onApplyPhotoFilter: function(args) {
+        this.args = args;
+        this.reset();
+    },
+    getRequestParams: function() {
+        var params = {
+            format: 'json',
+            method: 'flickr.photos.search',
+            extras: 'geo,url_s,url_c,url_o,date_taken,date_upload,owner_name,original_format,o_dims,views',
+            per_page: this.photosPerPage,
+            page: (this.page + 1)
+        };
+
+        if (this.args && this.args.year) {
+            logger.logi("Filtering by year: " + this.args.year);
+            var dtStart = moment.utc([this.args.year, 0, 1]);
+            var dtEnd = moment.utc([this.args.year, 11, 31]);
+            logger.logi("Flickr date range: " + dtStart.unix() + " to " + dtEnd.unix());
+            params.min_taken_date = dtStart.unix();
+            params.max_taken_date = dtEnd.unix();
+        }
+
+        if (this.args && this.args.bbox) {
+            params.bbox = this.getMapBounds().join(",");
+            params.zoom = this.getZoomLevel();
             logger.logi("Filtering by bbox: " + params.bbox);
         }
         return params;
@@ -354,7 +487,8 @@ var MapView = Backbone.View.extend({
                 this.layers[LAYER_OSM]
             ]
 		});
-		this.cache = new FlickrPhotoCache({ map: this.map, photosPerPage: 100 });
+        this.cache = new FlickrPhotoCache({ map: this.map, photosPerPage: 100 });
+        this.photoCache = new PhotoCache({ map: this.map, photosPerPage: 100 });
 
 		var that = this;
 
@@ -427,7 +561,8 @@ var MapView = Backbone.View.extend({
 	initialView: function() {
 	    var bounds = new OpenLayers.Bounds(10470115.700925, -5508791.4417243, 19060414.686531, -812500.42453675);
 	    this.map.zoomToExtent(bounds, false);
-	    this.cache.updateExtents(bounds);
+	    //this.cache.updateExtents(bounds);
+        this.photoCache.updateExtents(bounds);
     },
     zoomToMylocation: function() {
         if (typeof(navigator.geolocation) != 'undefined') {
@@ -701,34 +836,106 @@ var MapView = Backbone.View.extend({
 
 		EventAggregator.on("flickrCacheReset", _.bind(this.onFlickrCacheReset, this));
 		EventAggregator.on("flickrPageLoaded", _.bind(this.onFlickrPageLoaded, this));
+        EventAggregator.on("photoPageLoaded", _.bind(this.onPhotoPageLoaded, this));
 	},
 	onFlickrCacheReset: function() {
 	    this.photosLayer.removeAllFeatures();
 	},
-	onFlickrPageLoaded: function(e) {
-	    var cache = e.cache;
-	    var data = cache.getCurrentPageData();
-	    var features = [];
+    onFlickrPageLoaded: function(e) {
+        var cache = e.cache;
+        var data = cache.getCurrentPageData();
+        var features = [];
 
-	    for (var i = 0; i < data.photo.length; i++) {
-	        var photo = data.photo[i];
-	        var geom = new OpenLayers.Geometry.Point(photo.longitude, photo.latitude);
-	        geom.transform(PROJ_LL84, this.map.getProjectionObject());
-	        features.push(
+        for (var i = 0; i < data.photo.length; i++) {
+            var photo = data.photo[i];
+            var geom = new OpenLayers.Geometry.Point(photo.longitude, photo.latitude);
+            geom.transform(PROJ_LL84, this.map.getProjectionObject());
+            features.push(
                 new OpenLayers.Feature.Vector(
                     geom,
                     photo
                 )
             );
-	    }
+        }
 
-	    this.photosLayer.addFeatures(features);
+        this.photosLayer.addFeatures(features);
 
         //Force re-clustering
-	    this.flickrCluster.clusters = null;
-	    this.flickrCluster.cluster();
-	},
+        this.flickrCluster.clusters = null;
+        this.flickrCluster.cluster();
+    },
+    onPhotoPageLoaded: function(e) {
+        var cache = e.cache;
+        var data = cache.getCurrentPageData();
+        var features = [];
+
+        for (var i = 0; i < data.length; i++) {
+            var photo = data[i];
+            var geom = new OpenLayers.Geometry.Point(photo.longitude, photo.latitude);
+            geom.transform(PROJ_LL84, this.map.getProjectionObject());
+            features.push(
+                new OpenLayers.Feature.Vector(
+                    geom,
+                    photo
+                )
+            );
+        }
+
+        this.photosLayer.addFeatures(features);
+
+        //Force re-clustering
+        this.flickrCluster.clusters = null;
+        this.flickrCluster.cluster();
+    },
 	onShowPhotos: function (e) {
+        var that = this;
+        if(!e.photos[0].attributes.url_s)
+        {
+            var params = {
+                format: 'json',
+                method: 'flickr.photos.search',
+                extras: 'geo,url_s,url_c,url_o,date_taken,date_upload,owner_name,original_format,o_dims,views',
+                per_page: 100,
+                page: 1
+            };
+
+            var bottom, top, left, right;
+            for(var j = 0; j < e.photos.length; j++){
+                if(!bottom || e.photos[j].attributes.latitude < bottom) bottom = e.photos[j].attributes.latitude;
+                if(!top || e.photos[j].attributes.latitude > top) top = e.photos[j].attributes.latitude;
+                if(!left || e.photos[j].attributes.longitude < left) left = e.photos[j].attributes.longitude;
+                if(!right || e.photos[j].attributes.longitude > right) right = e.photos[j].attributes.longitude;
+            }
+            params.bbox =  left + ',' + bottom + ',' + right + ',' + top;
+            params.zoom = 10;
+            logger.logi("Filtering by bbox: " + params.bbox);
+
+            var promise = $.getJSON(
+                SERVICE_URL + "/flickr/search",
+                params
+            );
+            promise.done(function (data) {
+                for(var i = 0; i < data.photos.photo.length; i++){
+                    for(var j = 0; j < e.photos.length; j++){
+                        var photo = data.photos.photo[i];
+
+                        if(e.photos[j].attributes.latitude == photo.latitude 
+                            && e.photos[j].attributes.longitude == photo.longitude
+                            && !e.photos[j].attributes.url_s)
+                        {
+                            e.photos[j].attributes.title = photo.title;
+                            e.photos[j].attributes.url_c = photo.url_c;
+                            e.photos[j].attributes.url_s = photo.url_s;
+                            break;
+                        }
+                    }
+                }
+                that.onShowPhotos(e);
+            }).fail(function() {
+                //debugger;
+            });
+            return;
+        }
 	    var getPhotoUrlFunc = function (photo) {
 	        return photo.attributes.url_c || photo.attributes.url_s;
 	    };
