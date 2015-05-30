@@ -1231,7 +1231,7 @@ var PhotosView = BaseSidebarView.extend({
         
         EventAggregator.trigger("getCurrentPhotoFilter", {
             callback: function(args) {
-                var filterModal = $(templ({ bbox: args.bbox, year: args.year || dt.getFullYear(), fromYear: 2011, toYear: dt.getFullYear() }));
+                var filterModal = $(templ({ bbox: args.bbox, year: args.year, fromYear: 2011, toYear: dt.getFullYear() }));
                 $("body").append(filterModal);
                 
                 filterModal.modal('show').on("hidden.bs.modal", function (e) {
