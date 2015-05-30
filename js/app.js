@@ -891,6 +891,10 @@ var MapView = Backbone.View.extend({
         var that = this;
         if(!e.photos[0].attributes.url_s)
         {
+            this.showLightbox({
+                photos: e.photos,
+            }, true);
+
             var params = {
                 format: 'json',
                 method: 'flickr.photos.search',
@@ -915,6 +919,7 @@ var MapView = Backbone.View.extend({
                 params
             );
             promise.done(function (data) {
+                var foundPhotos = false;
                 for(var i = 0; i < data.photos.photo.length; i++){
                     for(var j = 0; j < e.photos.length; j++){
                         var photo = data.photos.photo[i];
@@ -926,14 +931,23 @@ var MapView = Backbone.View.extend({
                             e.photos[j].attributes.title = photo.title;
                             e.photos[j].attributes.url_c = photo.url_c;
                             e.photos[j].attributes.url_s = photo.url_s;
+                            foundPhotos = true;
                             break;
                         }
                     }
                 }
-                that.onShowPhotos(e);
+                if(foundPhotos)
+                    that.onShowPhotos(e);
+                else{
+                    alert("Could not find photo on Flickr (probably deleted)");
+                    that.removeLightbox();
+                }
             }).fail(function() {
                 //debugger;
+                alert("Could not retrieve photo from Flickr");
+                that.removeLightbox();
             });
+
             return;
         }
 	    var getPhotoUrlFunc = function (photo) {
@@ -948,7 +962,14 @@ var MapView = Backbone.View.extend({
 	        getThumbnailUrl: getThumbnailFunc
 	    });
 	},
-	showLightbox: function (args) {
+    removeLightbox: function(){
+        if (this.activeModal) {
+            this.activeModal.remove();
+            //You'd think boostrap modal would've removed this for you?
+            $(".modal-backdrop").remove();
+        }
+    },
+	showLightbox: function (args, showLoading) {
 	    if (this.activeModal) {
 	        this.activeModal.remove();
 	        //You'd think boostrap modal would've removed this for you?
@@ -961,11 +982,13 @@ var MapView = Backbone.View.extend({
 	    for (var i = 0; i < args.photos.length; i++) {
 	        links.push({
 	            title: args.photos[i].attributes.title,
-	            href: args.getPhotoUrl(args.photos[i]),
-	            thumbnail: args.getThumbnailUrl(args.photos[i])
+	            href: (showLoading ? '/images/loading.gif' : args.getPhotoUrl(args.photos[i])),
+	            thumbnail: (showLoading ? '/images/loading.gif' : args.getThumbnailUrl(args.photos[i]))
 	        });
 	    }
+        if(showLoading) BLUEIMP_GALLERY_OPTIONS.stretchImages = false;
 	    blueimp.Gallery(links, BLUEIMP_GALLERY_OPTIONS);
+
 	},
 	onPhotoFeatureSelected: function(event) {
 	    this.selectControl.unselect(event.feature);
