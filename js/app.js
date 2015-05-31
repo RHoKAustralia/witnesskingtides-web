@@ -1312,7 +1312,7 @@ var UploadPhotoView = BaseSidebarView.extend({
 	render: function() {
 		BaseSidebarView.prototype.renderBase.apply(this, arguments);
         var dtPicker = $("#dtDate");
-        dtPicker.val(moment().format("YYYY-MM-DD hh:mm"));
+        dtPicker.val(moment().format("YYYY-MM-DD HH:mm"));
         if (!Modernizr.inputtypes.datetime)
             dtPicker.datetimepicker();
         $("#photoLocationButton").click(_.bind(this.onPhotoLocationClick, this));
