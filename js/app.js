@@ -231,7 +231,7 @@ var PhotoCache = OpenLayers.Class({
         
         var that = this;
         var promise = $.getJSON(
-            SERVICE_URL + "/photos/search",
+            SERVICE_URL + "/photos/clusters",
             this.getRequestParams()
         );
         promise.done(function (data) {
@@ -929,23 +929,21 @@ var MapView = Backbone.View.extend({
             logger.logi("Filtering by bbox: " + params.bbox);
 
             var promise = $.getJSON(
-                SERVICE_URL + "/flickr/search",
+                SERVICE_URL + "/photos/search",
                 params
             );
             promise.done(function (data) {
                 var foundPhotos = false;
-                for(var i = 0; i < data.photos.photo.length; i++){
+                for(var i = 0; i < data.length; i++){
+                    var photo = data[i];
+                    if(!photo.flickrUrl) continue;
                     for(var j = 0; j < e.photos.length; j++){
-                        var photo = data.photos.photo[i];
-
-                        // comment out cause inconsistent GPS coordinates (an instance where we truncate 1 sig fig vs Flickr? so this is not consistent)
-                        // if(parseFloat(e.photos[j].attributes.latitude) == parseFloat(photo.latitude) 
-                        //     && parseFloat(e.photos[j].attributes.longitude) == parseFloat(photo.longitude)
+                        // since it is a cluster, do not need to uniquely identify each point so just assign photo
                         if(!e.photos[j].attributes.url_s)
                         {
-                            e.photos[j].attributes.title = photo.title;
-                            e.photos[j].attributes.url_c = photo.url_c;
-                            e.photos[j].attributes.url_s = photo.url_s;
+                            e.photos[j].attributes.title = photo.description;
+                            e.photos[j].attributes.url_c = photo.flickrUrl;
+                            e.photos[j].attributes.url_s = photo.flickrUrl;
                             foundPhotos = true;
                             break;
                         }
