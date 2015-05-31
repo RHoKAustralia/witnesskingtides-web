@@ -1012,10 +1012,19 @@ var MapView = Backbone.View.extend({
         if (event.feature.cluster.length == 1) {
             this.onShowPhotos({ photos: event.feature.cluster });
         } else {
-            if (this.map.getScale() < MAX_INTERACTION_SCALE) {
+            var distinct_points = {};
+            var distinct_count = 0;
+            for (var i = 0; i < event.feature.cluster.length; i++) {
+                var key = event.feature.cluster[i].attributes.latitude + "_" + event.feature.cluster[i].attributes.longitude;
+                if (!distinct_points[key]) {
+                    distinct_points[key] = 1;
+                    distinct_count++;
+                }
+            }
+            if (distinct_count == 1 || (distinct_count < 5 && event.feature.cluster.length < 15) || this.map.getScale() < MAX_INTERACTION_SCALE) {
                 this.onShowPhotos({ photos: event.feature.cluster });
             } else {
-                if (event.feature.cluster.length > 1) {
+                if (event.feature.cluster.length > 5) {
                     var bounds = new OpenLayers.Bounds();
                     for (var i = 0; i < event.feature.cluster.length; i++) {
                         bounds.extend(event.feature.cluster[i].geometry.getBounds());
