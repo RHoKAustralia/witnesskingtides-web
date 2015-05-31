@@ -919,10 +919,10 @@ var MapView = Backbone.View.extend({
 
             var bottom, top, left, right;
             for(var j = 0; j < e.photos.length; j++){
-                if(!bottom || Number.parseFloat(e.photos[j].attributes.latitude) < bottom) bottom = Number.parseFloat(e.photos[j].attributes.latitude);
-                if(!top || Number.parseFloat(e.photos[j].attributes.latitude) > top) top = Number.parseFloat(e.photos[j].attributes.latitude);
-                if(!left || Number.parseFloat(e.photos[j].attributes.longitude) < left) left = Number.parseFloat(e.photos[j].attributes.longitude);
-                if(!right || Number.parseFloat(e.photos[j].attributes.longitude) > right) right = Number.parseFloat(e.photos[j].attributes.longitude);
+                if(!bottom || parseFloat(e.photos[j].attributes.latitude) < bottom) bottom = parseFloat(e.photos[j].attributes.latitude);
+                if(!top || parseFloat(e.photos[j].attributes.latitude) > top) top = parseFloat(e.photos[j].attributes.latitude);
+                if(!left || parseFloat(e.photos[j].attributes.longitude) < left) left = parseFloat(e.photos[j].attributes.longitude);
+                if(!right || parseFloat(e.photos[j].attributes.longitude) > right) right = parseFloat(e.photos[j].attributes.longitude);
             }
             params.bbox =  left + ',' + bottom + ',' + right + ',' + top;
             params.zoom = 10;
@@ -939,8 +939,8 @@ var MapView = Backbone.View.extend({
                         var photo = data.photos.photo[i];
 
                         // comment out cause inconsistent GPS coordinates (an instance where we truncate 1 sig fig vs Flickr? so this is not consistent)
-                        // if(Number.parseFloat(e.photos[j].attributes.latitude) == Number.parseFloat(photo.latitude) 
-                        //     && Number.parseFloat(e.photos[j].attributes.longitude) == Number.parseFloat(photo.longitude)
+                        // if(parseFloat(e.photos[j].attributes.latitude) == parseFloat(photo.latitude) 
+                        //     && parseFloat(e.photos[j].attributes.longitude) == parseFloat(photo.longitude)
                         if(!e.photos[j].attributes.url_s)
                         {
                             e.photos[j].attributes.title = photo.title;
