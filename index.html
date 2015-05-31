@@ -109,9 +109,10 @@
                         <div class="modal-body">
                             <p>Choose the following filters to apply to the photostream.</p>
                             <div class="form-group">
-                                <label for="filterYear">Year:</label>
+                                <label><input type="checkbox" name="albumFilter" value="year" class="filter-year" <%= year ? 'checked=\"checked\"' : ''%> >
+                                Year:</label>
                                 <select class="form-control" id="filterYear" name="filterYear">
-                                    <% for (var y = fromYear; y <= toYear; y++) { %>
+                                    <% for (var y = toYear; y >= fromYear; y--) { %>
                                     <% if (y == year) { %>
                                     <option value="<%= y %>" selected="selected"><%= y %></option>
                                     <% } else { %>
@@ -188,10 +189,13 @@
                 </div>
                 <div class="well well-sm">
                     <div class="control-group">
-                        <input type="checkbox" id="chkAcceptTerms" name="chkAcceptTerms" /> I have read and agree to the <a href="javascript:void(0)" data-wkt-role="terms">terms and conditions</a>
+                        <label>
+                        <input type="checkbox" id="chkAcceptTerms" name="chkAcceptTerms" /> I have read and agree to the <a href="javascript:void(0)" data-wkt-role="terms">terms and conditions</a></label>
                     </div>
                     <div class="control-group">
+                        <label>
                         <input type="checkbox" id="chkAcceptCC" name="chkAcceptCC" /> I agree to share my photos under the <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank">Non Commercial-Share Alike license</a>
+                        </label>
                     </div>
                 </div>
 
