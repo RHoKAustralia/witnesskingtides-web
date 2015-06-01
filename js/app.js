@@ -79,7 +79,7 @@ var FlickrPhotoCache = OpenLayers.Class({
         EventAggregator.trigger("flickrPageLoading");
         var that = this;
         var promise = $.getJSON(
-            SERVICE_URL + "/flickr/search",
+            SERVICE_URL + "/photos/paginatedSearch",
             this.getRequestParams()
         );
         promise.done(function (data) {
@@ -1205,19 +1205,25 @@ var PhotosView = BaseSidebarView.extend({
         var total = cache.total;
         var html = this.legendTemplate();
         var escape = function (str) {
+            if(!str) str = '';
             return str.replace(/'/g, "&apos;").replace(/"/g, "&quot;");
         };
         for (var i = 0; i < data.photo.length; i++) {
             var photo = data.photo[i];
-            var escapedTitle = escape(photo.title);
+            var escapedTitle = escape(photo.description);
             var extraClasses = "";
             if (photo.latitude && photo.longitude) {
                 extraClasses = "flickr-thumbnail-with-geo";
             } else {
                 extraClasses = "flickr-thumbnail-without-geo";
             }
-            var url = photo.url_s || "images/error.png";
-            html += "<a href='javascript:void(0)' class='photo-link' data-photo-page-index='" + (pageNo - 1) + "' data-photo-id='" + photo.id + "'><img class='thumbnail flickr-thumbnail " + extraClasses + "' title='" + escapedTitle + "' alt='" + escapedTitle + "' width='64' height='64' src='" + url + "' /></a>";
+            var url = photo.flickrUrl.replace(".jpg", "_s.jpg") || "images/error.png";
+            html += "<a href='javascript:void(0)' class='photo-link' " +
+                " data-photo-page-index='" + (pageNo - 1) + "'" +
+                " data-photo-id='" + photo._id + "'>" +
+                "<img class='thumbnail flickr-thumbnail " + extraClasses + "'" +
+                " title='" + escapedTitle + "' alt='" + escapedTitle + "' " +
+                " width='64' height='64' src='" + url + "' /></a>";
         }
         $("div.album-pager").html(this.pagerTemplate({ pageNo: pageNo, pages: pages }));
         $("a.next-album-page").on("click", _.bind(this.onNextAlbumPage, this));
@@ -1231,7 +1237,7 @@ var PhotosView = BaseSidebarView.extend({
             var id = lnk.attr("data-photo-id");
             var data = cache.getPageData(pageIndex);
             for (var j = 0; j < data.photo.length; j++) {
-                if (data.photo[j].id == id) {
+                if (data.photo[j]._id == id) {
                     EventAggregator.trigger("showPhotos", {
                         photos: [
                             { attributes: data.photo[j] }
