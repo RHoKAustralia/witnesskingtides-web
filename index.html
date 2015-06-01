@@ -76,12 +76,8 @@
         <script id="albumPager" type="template">
             <div class="btn-toolbar pull-left" role="toolbar">
                 <div class="btn-group">
-                    <% if (pageNo > 1) { %>
-                    <a class="btn btn-primary btn prev-album-page" title="Previous Page"><i class="fa fa-arrow-left"></i></a>
-                    <% } %>
-                    <% if (pageNo < pages) { %>
-                    <a class="btn btn-primary btn next-album-page" title="Next Page"><i class="fa fa-arrow-right"></i></a>
-                    <% } %>
+                    <a class="btn btn-primary btn prev-album-page <% if (pageNo <= 1) { %>disabled<% } %>" title="Previous Page"><i class="fa fa-arrow-left"></i></a>
+                    <a class="btn btn-primary btn next-album-page <% if (pageNo >= pages) { %>disabled<% } %>" title="Next Page"><i class="fa fa-arrow-right"></i></a>
                     <a class="btn btn-primary btn refresh-album" title="Refresh Album"><i class="fa fa-refresh"></i></a>
                     <a class="btn btn-primary btn hidden-xs zoom-photo-page-bounds" title="Zoom to region"><i class="fa fa-arrows-alt"></i></a>
                     <a class="btn btn-primary btn filter-photostream" title="Filter this photostream"><i class="fa fa-filter"></i>&nbsp;Filter</a>
@@ -120,6 +116,10 @@
                                     <% } %>
                                     <% } %>
                                 </select>
+                            </div>
+                            <div class="form-group">
+                                <label><input type="checkbox" name="albumFilter" value="bbox" class="filter-bbox" <%= bbox ? 'checked=\"checked\"' : ''%>>
+                                My current map view</label>
                             </div>
                             <a class="btn btn-primary apply-filter">Apply</a>
                             <a class="btn btn-primary reset-filter">Reset</a>
