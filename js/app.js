@@ -169,8 +169,10 @@ var FlickrPhotoCache = OpenLayers.Class({
         }
 
         if (this.args && this.args.bbox) {
-            params.bbox = this.getMapBounds().join(",");
+            params.bbox = this.args.bbox_value || this.getMapBounds().join(",");
+            if(!this.args.bbox_value) this.args.bbox_value = params.bbox;
             params.zoom = this.getZoomLevel();
+
             logger.logi("Filtering by bbox: " + params.bbox);
         }
         return params;
@@ -203,7 +205,7 @@ var PhotoCache = OpenLayers.Class({
         if (_.has(options, "photosPerPage"))
             this.photosPerPage = options.photosPerPage;
         //EventAggregator.on("getPhotoPageBounds", _.bind(this.onGetPhotoPageBounds, this));
-        // EventAggregator.on("resetPhotoFilter", _.bind(this.onResetPhotoFilter, this));
+        EventAggregator.on("resetPhotoFilter", _.bind(this.onResetPhotoFilter, this));
         EventAggregator.on("applyPhotoFilter", _.bind(this.onApplyPhotoFilter, this));
         // EventAggregator.on("getCurrentPhotoFilter", _.bind(this.onCurrentPhotoFilterRequest, this));
     },
@@ -297,7 +299,8 @@ var PhotoCache = OpenLayers.Class({
         }
 
         if (this.args && this.args.bbox) {
-            params.bbox = this.getMapBounds().join(",");
+            params.bbox = this.args.bbox_value || this.getMapBounds().join(",");
+            if(!this.args.bbox_value) this.args.bbox_value = params.bbox;
             params.zoom = this.getZoomLevel();
             logger.logi("Filtering by bbox photocache: " + params.bbox);
         }
