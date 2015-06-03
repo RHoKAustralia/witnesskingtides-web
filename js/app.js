@@ -1357,6 +1357,9 @@ var UploadPhotoView = BaseSidebarView.extend({
                 },
                 "PhotoFile": {
                     required: true
+                },
+                "PhotoLocation": {
+                    required: true
                 }
             },
             messages: {
@@ -1369,6 +1372,9 @@ var UploadPhotoView = BaseSidebarView.extend({
                 },
                 "PhotoFile": {
                     required: "Please attach a photo"
+                },
+                "PhotoLocation": {
+                    required: "Please specify the photo location"
                 }
             },
             focusInvalid: true,
