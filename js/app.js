@@ -1545,8 +1545,9 @@ var UploadPhotoView = BaseSidebarView.extend({
                 formData.append("LastName", $("#txtSurname").val());
                 formData.append("PhotoLocation", $("#photoLocation").val());
                 formData.append("CreationDate", $("#dtDate").val());
-                formData.append("Photofile", $("#photoFile")[0].files[0]);
                 formData.append("Description", $("#txtDescription").val());
+                for(var i = 0; i < $("#photoFile")[0].files.length; i++)
+                    formData.append("Photofile", $("#photoFile")[0].files[i]);
                 e.preventDefault();
 
                 var promise = null;
@@ -1574,7 +1575,8 @@ var UploadPhotoView = BaseSidebarView.extend({
                 }
 
                 promise.success(_.bind(function (data) {
-                    alert("Photo has been uploaded");
+
+                    alert("Photo" + (data.photos.length > 1 ? "s have " : " has") + " been uploaded");
                     if (this.activeModal) {
                         this.activeModal.remove();
                         //You'd think boostrap modal would've removed this for you?
@@ -1582,13 +1584,15 @@ var UploadPhotoView = BaseSidebarView.extend({
                         EventAggregator.trigger("resetPhotoFilter");
                     }
                     var value = $("#photoLocation").val();
-                    if (value != "") {
-                        var coords = value.split(" ");
-                        data.Longitude = coords[0];
-                        data.Latitude = coords[1];
+                    for(var i = 0; i < data.photos.length; i++){
+                        if (value != "") {
+                            var coords = value.split(" ");
+                            data.photos[i].Longitude = coords[0];
+                            data.photos[i].Latitude = coords[1];
+                        }
+                        data.photos[i].FlickrId = data.photos[i].photoId;
+                        this.insertPhotoMarker(data.photos[i].Longitude, data.photos[i].Latitude, data.photos[i].FlickrId);
                     }
-                    data.FlickrId = data.photoId;
-                    this.insertPhotoMarker(data.Longitude, data.Latitude, data.FlickrId);
                     //Go home on completion
                     window.location.hash = "#home";
                 }, this)).fail(_.bind(function (jqXHR, textStatus, errorThrown) {
@@ -1641,15 +1645,28 @@ var UploadPhotoView = BaseSidebarView.extend({
     },
     onPhotoFileChanged: function(e) {
         var _self = this;
-        EXIF.getData(e.currentTarget.files[0], function() {
-            if (this.exifdata.GPSLatitude && this.exifdata.GPSLongitude && this.exifdata.GPSLatitudeRef && this.exifdata.GPSLongitudeRef) {
-                _self.updateLocationFromExif(this.exifdata);
-            } else {
-                logger.logi("Missing or Insufficient EXIF GeoTag metadata");
-            }
+        var getExifInfo = function(fileList, index, callback){
+            fileList = fileList || [];
+            index = index || 0;
+            EXIF.getData(fileList[index], function() {
+                if (this.exifdata.GPSLatitude && this.exifdata.GPSLongitude && this.exifdata.GPSLatitudeRef && this.exifdata.GPSLongitudeRef) {
+                    if(callback) callback(this.exifdata)
+                } else {
+                    logger.logi("Missing or Insufficient EXIF GeoTag metadata");
+                    if(index < fileList.length-1){
+                        getExifInfo(fileList, index+1, callback);
+                    }
+                }
+            });
+        }
+        getExifInfo(e.currentTarget.files, 0, function(exifdata){
+            _self.updateLocationFromExif(exifdata);
         });
         $("#photoFileButton").removeClass("btn-danger").addClass("btn-success");
-        $("#photoFileButtonText").html("Photo Selected");
+        if(e.currentTarget.files.length > 1)
+            $("#photoFileButtonText").html(e.currentTarget.files.length + " Photos Selected");
+        else
+            $("#photoFileButtonText").html("Photo Selected");
     },
     onPhotoLocationClick: function(e) {
         var value = $("#photoLocation").val();
