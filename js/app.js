@@ -416,6 +416,45 @@ OpenLayers.Control.TextButtonPanel = OpenLayers.Class(OpenLayers.Control.Panel, 
     CLASS_NAME: "OpenLayers.Control.TextButtonPanel"
 });
 
+
+OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
+    callback: null,
+    defaultHandlerOptions: {
+        'single': true,
+        'double': false,
+        'pixelTolerance': 0,
+        'stopSingle': false,
+        'stopDouble': false
+    },
+
+    initialize: function(options) {
+        options = options || {};
+        this.handlerOptions = OpenLayers.Util.extend(
+            {}, this.defaultHandlerOptions
+        );
+        OpenLayers.Control.prototype.initialize.apply(
+            this, arguments
+        );
+        this.callback = options.callback || null;
+        this.handler = new OpenLayers.Handler.Click(
+            this, {
+                'click': this.trigger
+            }, this.handlerOptions
+        );
+    },
+
+    trigger: function(e) {
+        var lonlat = this.map.getLonLatFromPixel(e.xy);
+        lonlat.transform(
+          PROJ_WEBMERCATOR,
+          PROJ_LL84
+        );
+        // alert("You clicked near " + lonlat.lat + " N, " +
+        //                           + lonlat.lon + " E");
+        if(this.callback) this.callback(lonlat);
+    }
+
+});
 var MapView = Backbone.View.extend({
     map: null,
     userLayers: [],
@@ -533,6 +572,14 @@ var MapView = Backbone.View.extend({
 
         this.map.addControl(panel);
 
+        var click = new OpenLayers.Control.Click({callback: function(e){
+            if(that.bManualLocationRecording)
+                that.zoomLonLat(e.lon, e.lat, that.map.getZoom());
+        }});
+        this.map.addControl(click);
+        click.activate();
+
+
         //HACK: Have to insert this content at runtime
         $("div.wkt-btn-locateItemInactive").html("<i class='fa fa-location-arrow'></i>");
         $("div.wkt-btn-initialzoomItemInactive").html("<i class='fa fa-arrows-alt'></i>");
@@ -571,7 +618,7 @@ var MapView = Backbone.View.extend({
             navigator.geolocation.getCurrentPosition(_.bind(function(pos) { //Success
                 this.zoomLonLat(pos.coords.longitude, pos.coords.latitude, 14);
             }, this), _.bind(function(pos) { //Failure
-                alert("Could not get your location");
+                alert("Could not get your location. Permission to read location has been denied");
             }, this), { //Options
                 enableHighAccuracy: true,
                 maximumAge: 0,
@@ -605,7 +652,12 @@ var MapView = Backbone.View.extend({
             this.positionLayer.addFeatures([ feat ]);
 
             var zoomLevel = 14;
-            this.zoomLonLat(e.lon, e.lat, zoomLevel);
+            var cent = this.map.getExtent().getCenterLonLat();
+            cent.transform(PROJ_WEBMERCATOR,PROJ_LL84);
+            if(cent.lon == e.lon && cent.lat == e.lat && this.map.getZoom() == zoomLevel)
+                alert("Already centered on photo location");
+            else
+                this.zoomLonLat(e.lon, e.lat, zoomLevel);
         }
     },
     onToggleManualLocationRecording: function() {
@@ -617,13 +669,15 @@ var MapView = Backbone.View.extend({
     },
     beginManualRecordingMode: function() {
         this.bManualLocationRecording = true;
-        alert("You are now manually recording your location. A marker has been placed on the centre of the map. Pan/Zoom to your correct location");
+        alert("You are now manually recording your location. A marker has been placed on the centre of the map. Click/Tap/Drag/Zoom to your correct location");
         this.positionLayer.removeAllFeatures();
         var cent = this.map.getExtent().getCenterLonLat();
+
         this.positionLayer.addFeatures([
             new OpenLayers.Feature.Vector(
                 new OpenLayers.Geometry.Point(cent.lon, cent.lat))
         ]);
+
     },
     endManualRecordingMode: function() {
         this.bManualLocationRecording = false;
@@ -1330,7 +1384,7 @@ var UploadPhotoView = BaseSidebarView.extend({
             }, this), _.bind(function(pos) { //Failure
                 $("#photoLocation")
                     .val("")
-                    .attr("placeholder", "Could not get your location");
+                    .attr("placeholder", "Permission to read location denied");
             }, this), { //Options
                 enableHighAccuracy: true,
                 maximumAge: 0,
@@ -1601,6 +1655,11 @@ var UploadPhotoView = BaseSidebarView.extend({
         if (value != "") {
             var coords = value.split(" ");
             EventAggregator.trigger("showPositionOnMap", { lon: parseFloat(coords[0]), lat: parseFloat(coords[1]) });
+        }
+        else{
+            if(confirm("Photo Location not set. Do you want to manually specify location?")){
+                this.onManualRecordToggle();
+            }
         }
     },
 	teardown: function() {
