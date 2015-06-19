@@ -1297,7 +1297,14 @@ var PhotosView = BaseSidebarView.extend({
                 if (data.photo[j]._id == id) {
                     EventAggregator.trigger("showPhotos", {
                         photos: [
-                            { attributes: data.photo[j] }
+                            {
+                                attributes:
+                                {
+                                    title: data.photo[j].description,
+                                    url_c: data.photo[j].flickrUrl,
+                                    url_s: data.photo[j].flickrUrl
+                                }
+                            }
                         ]
                     })
                     break;
