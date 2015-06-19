@@ -1296,7 +1296,14 @@ var PhotosView = BaseSidebarView.extend({
                 if (data.photo[j]._id == id) {
                     EventAggregator.trigger("showPhotos", {
                         photos: [
-                            { attributes: data.photo[j] }
+                            {
+                                attributes:
+                                {
+                                    title: data.photo[j].description,
+                                    url_c: data.photo[j].flickrUrl,
+                                    url_s: data.photo[j].flickrUrl
+                                }
+                            }
                         ]
                     })
                     break;
@@ -1366,15 +1373,22 @@ var PhotosView = BaseSidebarView.extend({
 var UploadPhotoView = BaseSidebarView.extend({
     title: "Upload Photo",
     icon: "fa fa-camera",
+    data: null,
 	initialize: function(options) {
 		this.template = _.template($("#uploadSidebar").html());
 	},
 	render: function() {
 		BaseSidebarView.prototype.renderBase.apply(this, arguments);
+
         var dtPicker = $("#dtDate");
         dtPicker.val(moment().format("YYYY-MM-DD HH:mm"));
+        if(this.data){
+            for(var key in this.data)
+                $("#"+ key).val(this.data[key]);
+        }
         if (!Modernizr.inputtypes.datetime)
             dtPicker.datetimepicker();
+        $("#currentTimeButton").click(_.bind(this.onCurrentTimeClick, this));
         $("#photoLocationButton").click(_.bind(this.onPhotoLocationClick, this));
         $("#photoFile").change(_.bind(this.onPhotoFileChanged, this));
         $("#manualLocationToggle").click(_.bind(this.onManualRecordToggle, this));
@@ -1679,8 +1693,19 @@ var UploadPhotoView = BaseSidebarView.extend({
             }
         }
     },
+    onCurrentTimeClick: function(e) {
+        var dtPicker = $("#dtDate");
+        dtPicker.val(moment().format("YYYY-MM-DD HH:mm"));
+    },
 	teardown: function() {
-
+        this.data = {
+            txtEmail: $("#txtEmail").val(),
+            txtFirstName: $("#txtFirstName").val(),
+            txtSurname: $("#txtSurname").val(),
+            photoLocation: $("#photoLocation").val(),
+            dtDate: $("#dtDate").val(),
+            txtDescription: $("#txtDescription").val()
+        };
 	}
 });
 
@@ -1702,6 +1727,7 @@ var logger = {
 var AppRouter = Backbone.Router.extend({
 	mapView: null,
 	sidebarView: null,
+	uploadView: null,
 	routes: {
 		"home": "home",
 		"upload": "upload",
@@ -1731,11 +1757,12 @@ var AppRouter = Backbone.Router.extend({
 	},
 	upload: function() {
 		logger.logi("route: upload");
-        $("li.navbar-link").removeClass("active");
-        $("li.upload-link").addClass("active");
-        $("li.photos-link").removeClass("active");
+		$("li.navbar-link").removeClass("active");
+		$("li.upload-link").addClass("active");
+		$("li.photos-link").removeClass("active");
 		this.setMapView();
-		this.setSidebar(new UploadPhotoView());
+		this.uploadView = this.uploadView || new UploadPhotoView();
+		this.setSidebar(this.uploadView);
 	},
 	photos: function() {
 	    logger.logi("route: photos");
