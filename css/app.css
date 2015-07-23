@@ -298,3 +298,7 @@ body {
     overflow-x: hidden; /* Prevent scroll on narrow devices */
     overflow-y: hidden; /* Prevent scroll on narrow devices */
 }
+
+.row.deleted{
+    background-color: #fcc;
+}
