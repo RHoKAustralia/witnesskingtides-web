@@ -9,6 +9,14 @@ var EventAggregator = _.extend({}, Backbone.Events);
 var SERVICE_URL = "https://shielded-sea-6230.herokuapp.com";
 SERVICE_URL = "http://localhost:3000"; // for local testing
 
+// auth via flickr
+hello.init({
+	flickr: '', // flickr api key
+}, {
+	oauth_proxy: SERVICE_URL + '/oauthproxy'
+});
+
+
 var PROJ_LL84        = new OpenLayers.Projection("EPSG:4326");
 var PROJ_WEBMERCATOR = new OpenLayers.Projection("EPSG:900913");
 
@@ -1377,8 +1385,10 @@ var AdminView = BaseSidebarView.extend({
 		icon: "fa fa-lock",
 		showDeleted: false,
 		page: 1,
+		authorized: false, // simple authorizing mechanism since all real checks are done via Flickr account update/deletion
 		initialize: function(options) {
 			this.page = 1;
+			// this.authorized = true; // for debugging
 			this.template = _.template($("#adminSidebar").html());
 			this.pagerTemplate = _.template($("#adminPager").html());
 			$(this.el).on('click', 'a.btn.update, a.btn.delete, a.btn.undelete', function(e){
@@ -1401,17 +1411,36 @@ var AdminView = BaseSidebarView.extend({
 			EventAggregator.on("adminPageLoading", _.bind(this.onAdminPageLoading, this));
 			EventAggregator.on("adminPageLoaded", _.bind(this.onAdminPageLoaded, this));
 			EventAggregator.on("loadCurrentAdminPage", _.bind(this.onLoadCurrentAdminPage, this));
+			EventAggregator.on("adminPageAccessDenied", _.bind(this.onAdminPageAccessDenied, this));
+			EventAggregator.trigger("adminPageLoading");
 			EventAggregator.trigger("loadCurrentAdminPage");
 		},
+		teardown: function () {  // currently needed for all sidebar views
+		},
+		setPage: function(page){
+			this.page = page;
+		},
 		onAdminPageLoading: function () {
+			if(typeof(data) === 'undefined') data = {};
+			var msg = (typeof(data.msg) !== 'undefined' ? data.msg : 'Loading Page');
+
 			$("div.pager").empty();
-			$(".thumbnail-grid", this.el).html("<div class='well'><i class='fa fa-spinner fa-spin'></i>&nbsp;Loading Page</div>");
+			$(".thumbnail-grid", this.el).html("<div class='well'><i class='fa fa-spinner fa-spin'></i>&nbsp;" + _.escape(msg) + "</div>");
 		},
 		onAdminPageLoaded: function (e) {
 			$(".thumbnail-grid", this.el).empty();
 		},
 		onAdminPageEndProcessing: function () {
 			$(this.el).find('a.btn.update .is-processing, a.btn.delete .is-processing, a.btn.undelete .is-processing').remove();
+		},
+		onAdminPageAccessDenied: function (data) {
+			if(typeof(data) === 'undefined') data = {};
+			var msg = (typeof(data.msg) !== 'undefined' ? data.msg : 'Not authorized to access this page. Log into an account with admin access and try again');
+			$(".thumbnail-grid", this.el).html('<div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> <span class="sr-only">Error:</span> ' + _.escape(msg) + '</div>')
+			.append('<a class="login btn btn-primary">Check permission</a>');
+			$(".thumbnail-grid", this.el).find(".login").click(function(){
+				EventAggregator.trigger("loadCurrentAdminPage");
+			});
 		},
 		getRequestParams: function(){
 			var params = {};
@@ -1422,7 +1451,32 @@ var AdminView = BaseSidebarView.extend({
 		toggleShowDeleted: function(){
 			this.showDeleted = !this.showDeleted;
 			this.page = 1;
-			this.fetchPage(this.page);
+			EventAggregator.trigger("loadCurrentAdminPage");
+		},
+		checkPermissions: function(cb, previousFailure){
+			this.previousFailure = (typeof(previousFailure) !== 'undefined');
+			var that = this;
+			hello('flickr').api('me').then(function(d){
+				var users = [d.id,d.nsid,d.path_alias];
+				var promiseCheckAdmin = $.post(
+					SERVICE_URL + "/admin/isFlickrAdmin",
+					{user: users}
+				)
+				.done(function(e){
+					that.authorized = true;
+					cb();
+				})
+				.fail(function() {
+						EventAggregator.trigger('adminPageAccessDenied', {msg: 'Couldn\'t check if you have admin access'});
+				});
+			}, function(){
+				hello('flickr').login().then(function(){
+					if(!previousFailure)
+						that.checkPermissions(cb, true);
+				}, function(e){
+						EventAggregator.trigger('adminPageAccessDenied');
+				});
+			});
 		},
 		fetchPage: function (pageNo) {
 			this.page = pageNo;
@@ -1507,6 +1561,9 @@ var AdminView = BaseSidebarView.extend({
 				EventAggregator.trigger("adminPageLoaded");
 				$("div.pager").html(that.pagerTemplate({ pageNo: pageNo, pages: pages, showDeleted: that.showDeleted }));
 				$("a.next-page").on("click", _.bind(that.onNextPage, that));
+				$("select.pageNo").on("change", function(e){
+					that.goToPage($(that.el).find("select.pageNo").val());
+				});
 				$("a.prev-page").on("click", _.bind(that.onPrevPage, that));
 				$("a.refresh").on("click", _.bind(that.onRefresh, that));
 				$("a.show-deleted").on("click", _.bind(that.toggleShowDeleted, that));
@@ -1517,19 +1574,38 @@ var AdminView = BaseSidebarView.extend({
 			});
 		},
 		onLoadCurrentAdminPage: function () {
-			this.fetchPage(this.page);
+			EventAggregator.trigger("adminPageLoading");
+
+			var pageNo = this.page;
+			var that = this;
+
+			if(!this.authorized){
+				EventAggregator.trigger("adminPageLoading", {msg: 'Checking Authorization'});
+				this.checkPermissions(function(){
+					that.fetchPage(pageNo);
+				});
+			}
+			else{
+				that.fetchPage(pageNo);
+			}
+		},
+		goToPage: function (page) {
+				this.page = page;
+				EventAggregator.trigger("loadCurrentAdminPage");
 		},
 		onNextPage: function (e) {
 				this.page++;
 				EventAggregator.trigger("loadCurrentAdminPage");
 		},
 		onRefresh: function (e) {
-			EventAggregator.trigger("loadCurrentAdminPage");
+				EventAggregator.trigger("loadCurrentAdminPage");
 		},
 		onPrevPage: function (e) {
-				if(this.page > 1) this.page--;
-				EventAggregator.trigger("loadCurrentAdminPage");
-			}
+				if(this.page > 1) {
+					this.page--;
+					EventAggregator.trigger("loadCurrentAdminPage");
+				}
+		}
 });
 
 var UploadPhotoView = BaseSidebarView.extend({
@@ -1895,7 +1971,7 @@ var AppRouter = Backbone.Router.extend({
 		"home": "home",
 		"upload": "upload",
         "photos": "photos",
-		"admin": "admin",
+		"admin(/:page)": "admin",
 		"*path": "defaultRoute"
 	},
 	setMapView: function() {
@@ -1919,13 +1995,15 @@ var AppRouter = Backbone.Router.extend({
 		this.setMapView();
 		this.setSidebar(new HomeSidebarView());
 	},
-	admin: function() {
+	admin: function(page) {
+		if(typeof('page') === 'undefined' || isNaN(page) || page < 1) page = 1;
 		logger.logi("route: admin");
 		$("li.navbar-link").removeClass("active");
 		$("li.upload-link").removeClass("active");
 		$("li.photos-link").removeClass("active");
 		this.setMapView();
 		this.adminView = this.adminView || new AdminView();
+		this.adminView.setPage(page);
 		this.setSidebar(this.adminView);
 	},
 	upload: function() {
