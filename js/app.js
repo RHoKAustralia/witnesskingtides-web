@@ -1,3 +1,4 @@
+var CONFIG = (typeof(config) === 'undefined' ? {} : config);
 var debugMessage = function(msg) {
 	$("#debug").html(msg);
 }
@@ -6,12 +7,10 @@ Modernizr.addTest('formdata', 'FormData' in window);
 Modernizr.addTest('xhr2', 'FormData' in window && 'ProgressEvent' in window);
 
 var EventAggregator = _.extend({}, Backbone.Events);
-var SERVICE_URL = "https://shielded-sea-6230.herokuapp.com";
-SERVICE_URL = "http://localhost:3000"; // for local testing
-
+var SERVICE_URL = CONFIG.URL || "";
 // auth via flickr
 hello.init({
-	flickr: '', // flickr api key
+	flickr: CONFIG.FLICKR_API_KEY || "", // flickr api key
 }, {
 	oauth_proxy: SERVICE_URL + '/oauthproxy'
 });
@@ -1388,7 +1387,8 @@ var AdminView = BaseSidebarView.extend({
 		authorized: false, // simple authorizing mechanism since all real checks are done via Flickr account update/deletion
 		initialize: function(options) {
 			this.page = 1;
-			// this.authorized = true; // for debugging
+			if(CONFIG.ADMIN_BYPASS_AUTH)
+				this.authorized = true; // for debugging
 			this.template = _.template($("#adminSidebar").html());
 			this.pagerTemplate = _.template($("#adminPager").html());
 			$(this.el).on('click', 'a.btn.update, a.btn.delete, a.btn.undelete', function(e){
