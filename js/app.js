@@ -1,3 +1,4 @@
+var CONFIG = (typeof(config) === 'undefined' ? {} : config);
 var debugMessage = function(msg) {
 	$("#debug").html(msg);
 }
@@ -6,7 +7,14 @@ Modernizr.addTest('formdata', 'FormData' in window);
 Modernizr.addTest('xhr2', 'FormData' in window && 'ProgressEvent' in window);
 
 var EventAggregator = _.extend({}, Backbone.Events);
-var SERVICE_URL = "https://shielded-sea-6230.herokuapp.com";
+var SERVICE_URL = CONFIG.URL || "";
+// auth via flickr
+hello.init({
+	flickr: CONFIG.FLICKR_API_KEY || "", // flickr api key
+}, {
+	oauth_proxy: SERVICE_URL + '/oauthproxy'
+});
+
 
 var PROJ_LL84        = new OpenLayers.Projection("EPSG:4326");
 var PROJ_WEBMERCATOR = new OpenLayers.Projection("EPSG:900913");
@@ -1370,6 +1378,236 @@ var PhotosView = BaseSidebarView.extend({
     }
 });
 
+var AdminView = BaseSidebarView.extend({
+		pagerTemplate: null,
+		title: "Admin",
+		icon: "fa fa-lock",
+		showDeleted: false,
+		page: 1,
+		authorized: false, // simple authorizing mechanism since all real checks are done via Flickr account update/deletion
+		initialize: function(options) {
+			this.page = 1;
+			if(CONFIG.ADMIN_BYPASS_AUTH)
+				this.authorized = true; // for debugging
+			this.template = _.template($("#adminSidebar").html());
+			this.pagerTemplate = _.template($("#adminPager").html());
+			$(this.el).on('click', 'a.btn.update, a.btn.delete, a.btn.undelete', function(e){
+					$(this).prepend("<span class='is-processing'><i class='fa fa-spinner fa-spin'></i>&nbsp;</span>");
+					e.preventDefault();
+					$.getJSON(SERVICE_URL + $(this).attr('href'))
+					.done(function(data){
+						alert(data);
+						EventAggregator.trigger("loadCurrentAdminPage");
+					})
+					.fail(function(err){ alert('Failed request: ' + err.responseText);})
+					.always(function(){
+						EventAggregator.trigger("adminPageEndProcessing");
+					});
+			});
+		},
+		render: function () {
+			BaseSidebarView.prototype.renderBase.apply(this, arguments);
+			EventAggregator.on("adminPageEndProcessing", _.bind(this.onAdminPageEndProcessing, this));
+			EventAggregator.on("adminPageLoading", _.bind(this.onAdminPageLoading, this));
+			EventAggregator.on("adminPageLoaded", _.bind(this.onAdminPageLoaded, this));
+			EventAggregator.on("loadCurrentAdminPage", _.bind(this.onLoadCurrentAdminPage, this));
+			EventAggregator.on("adminPageAccessDenied", _.bind(this.onAdminPageAccessDenied, this));
+			EventAggregator.trigger("adminPageLoading");
+			EventAggregator.trigger("loadCurrentAdminPage");
+		},
+		teardown: function () {  // currently needed for all sidebar views
+		},
+		setPage: function(page){
+			this.page = page;
+		},
+		onAdminPageLoading: function () {
+			if(typeof(data) === 'undefined') data = {};
+			var msg = (typeof(data.msg) !== 'undefined' ? data.msg : 'Loading Page');
+
+			$("div.pager").empty();
+			$(".thumbnail-grid", this.el).html("<div class='well'><i class='fa fa-spinner fa-spin'></i>&nbsp;" + _.escape(msg) + "</div>");
+		},
+		onAdminPageLoaded: function (e) {
+			$(".thumbnail-grid", this.el).empty();
+		},
+		onAdminPageEndProcessing: function () {
+			$(this.el).find('a.btn.update .is-processing, a.btn.delete .is-processing, a.btn.undelete .is-processing').remove();
+		},
+		onAdminPageAccessDenied: function (data) {
+			if(typeof(data) === 'undefined') data = {};
+			var msg = (typeof(data.msg) !== 'undefined' ? data.msg : 'Not authorized to access this page. Log into an account with admin access and try again');
+			$(".thumbnail-grid", this.el).html('<div class="alert alert-danger" role="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> <span class="sr-only">Error:</span> ' + _.escape(msg) + '</div>')
+			.append('<a class="login btn btn-primary">Check permission</a>');
+			$(".thumbnail-grid", this.el).find(".login").click(function(){
+				EventAggregator.trigger("loadCurrentAdminPage");
+			});
+		},
+		getRequestParams: function(){
+			var params = {};
+			if(this.showDeleted)
+				params.deleted = 1;
+			return params;
+		},
+		toggleShowDeleted: function(){
+			this.showDeleted = !this.showDeleted;
+			this.page = 1;
+			EventAggregator.trigger("loadCurrentAdminPage");
+		},
+		checkPermissions: function(cb, previousFailure){
+			this.previousFailure = (typeof(previousFailure) !== 'undefined');
+			var that = this;
+			hello('flickr').api('me').then(function(d){
+				var users = [d.id,d.nsid,d.path_alias];
+				var promiseCheckAdmin = $.post(
+					SERVICE_URL + "/admin/isFlickrAdmin",
+					{user: users}
+				)
+				.done(function(e){
+					that.authorized = true;
+					cb();
+				})
+				.fail(function() {
+						EventAggregator.trigger('adminPageAccessDenied', {msg: 'Couldn\'t check if you have admin access'});
+				});
+			}, function(){
+				hello('flickr').login().then(function(){
+					if(!previousFailure)
+						that.checkPermissions(cb, true);
+				}, function(e){
+						EventAggregator.trigger('adminPageAccessDenied');
+				});
+			});
+		},
+		fetchPage: function (pageNo) {
+			this.page = pageNo;
+			EventAggregator.trigger("adminPageLoading");
+			var that = this;
+			var promise = $.getJSON(
+				SERVICE_URL + "/admin/photos/" + pageNo + "/",
+				this.getRequestParams()
+			);
+			promise.done(function (data) {
+				var html = '';
+				var pages = data.pages;
+				for (var i = 0; i < data.photo.length; i++) {
+					var photo = data.photo[i];
+					var escapedTitle = escape(photo.description);
+					var extraClasses = "";
+					if (photo.latitude && photo.longitude) {
+						extraClasses = "flickr-thumbnail-with-geo";
+					} else {
+						extraClasses = "flickr-thumbnail-without-geo";
+					}
+					if(!photo.flickrUrl) photo.flickrUrl = '';
+					var url = photo.flickrUrl.replace(".jpg", "_s.jpg") || "images/error.png";
+
+					html += "<div class='row" + (photo.deleted ? ' deleted' : '') + "'><div class='col-md-5'>";
+					html += "<a class='photo-link' " +
+						" data-photo-page-index='" + (pageNo - 1) + "'" +
+						" data-photo-id='" + photo._id + "'>" +
+						"<img class='thumbnail  " + extraClasses + "'" +
+						" title='" + escapedTitle + "' alt='" + escapedTitle + "' " +
+						" width='128' height='128' src='" + url + "' /></a>";
+
+
+					html += ("</div><div class='col-md-7'>");
+					if(photo.description)
+						html += ("<div><b>" + photo.description + "</b></div>");
+					html += ("<div><i class='fa fa-upload' title='Upload date'></i>&nbsp;" + moment(photo.submitted).format('D/MMM/YY, HH:mm Z') + "</div>");
+					if(photo.dateTaken)
+						html += ("<div><i class='fa fa-camera' title='Date photo taken'></i>&nbsp;" + moment(photo.dateTaken).format('D/MMM/YY, HH:mm Z') + "</div>");
+					if(photo.latitude && photo.longitude){
+						var latlng = photo.latitude + "," + photo.longitude;
+						var latlngDisp = parseFloat(photo.latitude).toFixed(5) + ", " + parseFloat(photo.longitude).toFixed(5);
+						html += ("<div>&nbsp;<i class='fa fa-map-marker'></i>&nbsp;&nbsp;<a target='_blank' href='http://maps.google.com/maps?q="+latlng+"'>"+ latlngDisp.replace(",", ", ") +"</a></div>");
+					}
+
+					var url_id = '';
+					var id = photo.id;
+					var suffix = '';
+					if(photo.flickrId){
+						id = photo.flickrId;
+						suffix = 'Fid';
+					}
+
+					try{
+						url_id = base58.encode(parseInt(photo.flickrId));
+					}
+					catch(err){
+					}
+					if(photo.flickrId){
+						html += "<div><a class='btn btn-info' title='View on Flickr' href='https://flic.kr/p/" + url_id + "' target='_blank'>View on Flickr</a></div>";
+					}
+					html += '<div class="btn-group">';
+					if(photo.flickrId){
+						html += "<a class='btn btn-primary update' href='/photos/update" + suffix +'/' + id + "' target='_blank'>Update</a>";
+					}
+					else{
+						html += ("<span class='btn btn-danger disabled'>No flickr photo associated. <br>Still uploading?</span>");
+					}
+					if(photo.deleted){
+						if(photo.flickrId){
+							html += "<a class='btn btn-primary undelete' href='/photos/undelete" + suffix + "/" + id + "' target='_blank'>Undelete</a>";
+						}
+					}
+					else
+						html += "<a class='btn btn-primary btn delete' href='/photos/delete"+ suffix + "/" + id + "' target='_blank'>Delete</a>";
+
+					html += ("</div>");
+					html += ("</div>");
+					html += ("</div>");
+
+				}
+				EventAggregator.trigger("adminPageLoaded");
+				$("div.pager").html(that.pagerTemplate({ pageNo: pageNo, pages: pages, showDeleted: that.showDeleted }));
+				$("a.next-page").on("click", _.bind(that.onNextPage, that));
+				$("select.pageNo").on("change", function(e){
+					that.goToPage($(that.el).find("select.pageNo").val());
+				});
+				$("a.prev-page").on("click", _.bind(that.onPrevPage, that));
+				$("a.refresh").on("click", _.bind(that.onRefresh, that));
+				$("a.show-deleted").on("click", _.bind(that.toggleShowDeleted, that));
+				$(".thumbnail-grid", that.el).append(html);
+
+			}).fail(function() {
+				//debugger;
+			});
+		},
+		onLoadCurrentAdminPage: function () {
+			EventAggregator.trigger("adminPageLoading");
+
+			var pageNo = this.page;
+			var that = this;
+
+			if(!this.authorized){
+				EventAggregator.trigger("adminPageLoading", {msg: 'Checking Authorization'});
+				this.checkPermissions(function(){
+					that.fetchPage(pageNo);
+				});
+			}
+			else{
+				that.fetchPage(pageNo);
+			}
+		},
+		goToPage: function (page) {
+				this.page = page;
+				EventAggregator.trigger("loadCurrentAdminPage");
+		},
+		onNextPage: function (e) {
+				this.page++;
+				EventAggregator.trigger("loadCurrentAdminPage");
+		},
+		onRefresh: function (e) {
+				EventAggregator.trigger("loadCurrentAdminPage");
+		},
+		onPrevPage: function (e) {
+				if(this.page > 1) {
+					this.page--;
+					EventAggregator.trigger("loadCurrentAdminPage");
+				}
+		}
+});
+
 var UploadPhotoView = BaseSidebarView.extend({
     title: "Upload Photo",
     icon: "fa fa-camera",
@@ -1728,10 +1966,12 @@ var AppRouter = Backbone.Router.extend({
 	mapView: null,
 	sidebarView: null,
 	uploadView: null,
+	adminView: null,
 	routes: {
 		"home": "home",
 		"upload": "upload",
         "photos": "photos",
+		"admin(/:page)": "admin",
 		"*path": "defaultRoute"
 	},
 	setMapView: function() {
@@ -1754,6 +1994,17 @@ var AppRouter = Backbone.Router.extend({
         $("li.photos-link").removeClass("active");
 		this.setMapView();
 		this.setSidebar(new HomeSidebarView());
+	},
+	admin: function(page) {
+		if(typeof('page') === 'undefined' || isNaN(page) || page < 1) page = 1;
+		logger.logi("route: admin");
+		$("li.navbar-link").removeClass("active");
+		$("li.upload-link").removeClass("active");
+		$("li.photos-link").removeClass("active");
+		this.setMapView();
+		this.adminView = this.adminView || new AdminView();
+		this.adminView.setPage(page);
+		this.setSidebar(this.adminView);
 	},
 	upload: function() {
 		logger.logi("route: upload");

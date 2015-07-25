@@ -209,6 +209,38 @@
                 <span id="formStatus"></span>
             </form>
         </script>
+        <script id="adminSidebar" type="template">
+            <div class="pager">
+
+            </div>
+            <div class="thumbnail-grid">
+
+            </div>
+            <div class="pager">
+
+            </div>
+            <p class="intro" style="visibility: hidden">HACK: If you are reading this, this text you will never see because the sole purpose of this paragraph is to pad out the sidebar enough to fill the whole screen</p>
+        </script>
+        <script id="adminPager" type="template">
+            <div class="btn-toolbar pull-left" role="toolbar">
+                <div class="btn-group">
+                    <a class="btn btn-primary btn prev-page <% if (pageNo <= 1) { %>disabled<% } %>" title="Previous Page"><i class="fa fa-arrow-left"></i></a>
+                    <span class="btn btn-primary">
+                      <select class="pageNo" title="Select a Page">
+                        <% for (var i = 0; i < pages; i++) { %>
+                          <option <% if (pageNo == i+1) { %>selected<% } %>><%= (i+1) %></option>
+                        <% } %>
+                      </select>
+                    </span>
+                    <a class="btn btn-primary btn next-page <% if (pageNo >= pages) { %>disabled<% } %>" title="Next Page"><i class="fa fa-arrow-right"></i></a>
+                    <a class="btn btn-primary btn refresh" title="Refresh Photos"><i class="fa fa-refresh"></i></a>
+                    <a class="btn btn-primary btn show-deleted" title="Show Deleted Images"><input type='checkbox' <% if(showDeleted){ %> checked <% } %>>&nbsp;Show Deleted</label></a>
+                </div>
+            </div>
+            <span class="pull-right">
+                Page <%= pageNo %>/<%= pages %>
+            </span>
+        </script>
         <script id="tidesSidebar" type="template">
             <div class="panel panel-info">
                 <div class="panel-heading">
@@ -430,6 +462,7 @@
                                     <li><a target="_blank" href="http://www.witnesskingtides.org/plan-your-shoot.aspx">Plan your shoot</a></li>
                                     <li><a target="_blank" href="http://www.witnesskingtides.org/what-are-king-tides.aspx">What are king tides?</a></li>
                                     <li><a target="_blank" href="http://www.witnesskingtides.org/participate/tide-trackers.aspx">Meet our Tide Trackers</a></li>
+                                    <li class="admin-link"><a href="#admin" title="Admin">Admin</a></li>
                                 </ul>
                             </li>
                         </ul>
@@ -489,6 +522,9 @@
         <script type="text/javascript" src="js/bootstrap-image-gallery.js"></script>
         <script type="text/javascript" src="js/OpenLayers.js"></script>
         <script type="text/javascript" src="js/exif.js"></script>
+        <script type="text/javascript" src="js/base58.js"></script>
+        <script type="text/javascript" src="js/hello.all.min.js"></script>
+        <script type="text/javascript" src="js/config.js"></script>
         <script type="text/javascript" src="js/app.js"></script>
     </body>
 </html>   
