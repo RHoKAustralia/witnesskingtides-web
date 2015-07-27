@@ -3,9 +3,11 @@ Witness King Tides
 
 This is the Witness King Tides web application for viewing and sharing photos of king tide events.
 
-This is the front-end component. For the back-end component see: https://github.com/rhok-melbourne/kingtides-api
+This is the front-end component. For the back-end component see: https://github.com/RHoKAustralia/kingtides-api
 
-View the current live development snapshot on: http://rhok-melbourne.github.io/witnesskingtides-web/index.html
+View the current live development snapshot on: http://RHoKAustralia.github.io/witnesskingtides-web
+
+Current live production on: http://photos.witnesskingtides.org
 
 Image Assets Used
 =================
